@@ -55,7 +55,28 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@shipdot/core": "workspace:^"
+    "@shipdot/core": "workspace:^",
+    "@types/react": "^19.3.0"
+  },
+  "peerDependencies": {
+    "@types/react": ">=19",
+    "astro": ">=4",
+    "svelte": ">=5",
+    "vue": ">=3.3"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "astro": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public",

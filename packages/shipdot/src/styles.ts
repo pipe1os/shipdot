@@ -2,6 +2,7 @@
 const VARS = `color-scheme:light dark;font:var(--shipdot-font,400 14px/1.5 system-ui,sans-serif);
 --_a:var(--shipdot-accent,light-dark(#4f46e5,#a5b4fc));
 --_ac:var(--shipdot-accent-contrast,light-dark(#fff,#18181b));
+--_hs:var(--shipdot-hotspot,light-dark(#db2777,#f472b6));
 --_bg:var(--shipdot-bg,light-dark(#fff,#18181b));
 --_fg:var(--shipdot-fg,light-dark(#18181b,#f4f4f5));
 --_mu:var(--shipdot-muted,light-dark(#52525b,#a1a1aa));
@@ -50,8 +51,8 @@ ul.l{list-style:none;margin:0;padding:0}
 export const LAYER_CSS: string = `:host{${VARS};position:fixed;inset:0;pointer-events:none;z-index:var(--shipdot-z,2147483000)}${CONTENT}
 .dot{all:unset;position:fixed;left:0;top:0;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;pointer-events:auto;cursor:pointer}
 .dot[hidden]{display:none}
-.dot::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--_a);box-shadow:0 0 0 2px var(--_bg)}
-.dot::after{content:"";position:absolute;inset:6px;border:2px solid var(--_a);border-radius:50%;animation:sd-p 1.6s ease-out infinite}
+.dot::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--_hs);box-shadow:0 0 0 2px var(--_bg)}
+.dot::after{content:"";position:absolute;inset:6px;border:2px solid var(--_hs);border-radius:50%;animation:sd-p 1.6s ease-out infinite}
 @keyframes sd-p{to{transform:scale(2.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){.dot::after{animation:none;transform:scale(1.6);opacity:.5}}
 .tip{position:fixed;left:0;top:0;box-sizing:border-box;width:min(320px,calc(100vw - 16px));padding:16px;pointer-events:auto;background:var(--_bg);color:var(--_fg);border:1px solid var(--_bd);border-radius:var(--_r);box-shadow:var(--_sh)}
@@ -62,6 +63,7 @@ export const LAYER_CSS: string = `:host{${VARS};position:fixed;inset:0;pointer-e
 export const THEME_PROPS: string[] = [
   'accent',
   'accent-contrast',
+  'hotspot',
   'bg',
   'fg',
   'muted',

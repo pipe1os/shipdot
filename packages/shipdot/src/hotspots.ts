@@ -216,12 +216,17 @@ export class Hotspots {
       this.#closeTip(false)
       return
     }
-    const b = spot.btn.getBoundingClientRect()
+    // Below the target (above if there is no room), aligned with its nearest edge.
+    const t = (spot.el as Element).getBoundingClientRect()
     const w = tip.offsetWidth
     const h = tip.offsetHeight
-    let top = b.bottom + 4
-    if (top + h > innerHeight - 8 && b.top - h - 4 > 8) top = b.top - h - 4
-    const left = clamp(b.left - 16, 8, innerWidth - w - 8)
+    let top = t.bottom + 8
+    if (top + h > innerHeight - 8 && t.top - h - 8 > 8) top = t.top - h - 8
+    const left = clamp(
+      t.left + t.width / 2 > innerWidth / 2 ? t.right - w : t.left,
+      8,
+      innerWidth - w - 8,
+    )
     tip.style.transform = `translate(${Math.round(left)}px,${Math.round(top)}px)`
   }
 }
