@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/@shipdot/core/schema/config.json",
+  "name": "Acme",
+  "entriesDir": ".shipdot/entries",
+  "outDir": "public",
+  "defaultLocale": "en",
+  "locales": ["en", "es"]
+}

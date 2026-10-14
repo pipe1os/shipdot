@@ -1,0 +1,16 @@
+{
+  "name": "@shipdot/example-astro",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "shipdot build && ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "shipdot build && ASTRO_TELEMETRY_DISABLED=1 astro build"
+  },
+  "dependencies": {
+    "astro": "^7.3.8",
+    "shipdot": "workspace:^"
+  },
+  "devDependencies": {
+    "@shipdot/cli": "workspace:^"
+  }
+}

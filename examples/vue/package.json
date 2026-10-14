@@ -1,0 +1,19 @@
+{
+  "name": "@shipdot/example-vue",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "shipdot build && vite",
+    "build": "shipdot build && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "shipdot": "workspace:^",
+    "vue": "^3.5.44"
+  },
+  "devDependencies": {
+    "@shipdot/cli": "workspace:^",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "vite": "^8.3.4"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@shipdot/example-vanilla",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "shipdot build && vite",
+    "build": "shipdot build && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "shipdot": "workspace:^"
+  },
+  "devDependencies": {
+    "@shipdot/cli": "workspace:^",
+    "vite": "^8.3.4"
+  }
+}
