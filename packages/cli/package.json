@@ -23,7 +23,7 @@
   "type": "module",
   "sideEffects": false,
   "bin": {
-    "shipdot": "./dist/bin.js"
+    "shipdot": "./bin/shipdot.js"
   },
   "exports": {
     ".": {
@@ -33,6 +33,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "bin",
     "dist"
   ],
   "scripts": {
