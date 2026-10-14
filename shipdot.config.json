@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/@shipdot/core/schema/config.json",
+  "name": "shipdot",
+  "description": "In-app changelog and feature hotspots generated from your pull requests. Zero backend, tiny web component.",
+  "url": "https://pipe1os.github.io/shipdot/",
+  "entriesDir": ".shipdot/entries",
+  "outDir": "apps/docs/public",
+  "defaultLocale": "en",
+  "locales": ["en", "es", "pt"]
+}
