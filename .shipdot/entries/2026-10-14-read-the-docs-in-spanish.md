@@ -1,8 +1,8 @@
 ---
 date: 2026-10-14
 type: improved
-title: Read the docs in Spanish
-target: a[href="README_es.md"]
+title: The README is now in Spanish
+link: https://github.com/pipe1os/shipdot/blob/main/README_es.md
 pr: 2
 ---
-The project README is now available in Spanish, and every npm package ships with its own README and license.
+Read the project README in Spanish on GitHub. Every npm package also ships with its own README and license.
