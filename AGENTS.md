@@ -56,7 +56,7 @@ Run `pnpm lint && pnpm typecheck && pnpm test` before every commit that touches 
 - **Naming**: files `kebab-case.ts`; types `PascalCase`; functions and variables `camelCase`; constants `UPPER_SNAKE_CASE` only for true module-level constants. Custom events are `shipdot:<name>`.
 - **Tests**: next to the package in `test/**/*.test.ts`, fixtures in `test/fixtures/`. Unit tests use Vitest (`happy-dom` for the widget). Browser behaviour is covered by Playwright in `e2e/`. Test behaviour, not implementation details.
 - **Dependencies**: prefer the platform and the standard library (`node:util` `parseArgs`/`styleText`, native `fetch`, `<dialog>`, Popover API). Every new dependency needs a reason in the PR description.
-- **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, `ci:`, `test:`, `refactor:`, `perf:`, `build:`), small and logical. Scope with the package when useful: `feat(widget): …`, `fix(cli): …`.
+- **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, `ci:`, `test:`, `refactor:`, `perf:`, `build:`), small and logical. **One short line only**: no body, no trailers. Scope with the package when useful: `feat(widget): …`, `fix(cli): …`.
 - **Changesets**: any user-facing change to `shipdot`, `@shipdot/core` or `@shipdot/cli` needs `pnpm changeset`. Private workspaces (docs, examples, action) do not.
 - **Pull requests**: fill the `### shipdot` section of the PR template (it becomes the in-app note) or write `skip`.
 

@@ -6,76 +6,76 @@ Target: **MVP v0.1.0** (not published).
 
 ## Phase 0 — Tooling and monorepo
 
-- [ ] pnpm workspace (`packages/*`, `apps/*`, `examples/*`, `action`), `packageManager` pinned
-- [ ] TypeScript 7 (`typescript@^7`) shared `tsconfig.base.json`: `strict`, ESM, `isolatedDeclarations` in publishable packages, no options deprecated in 6.0
-- [ ] tsdown for library builds (ESM + `.d.ts` via oxc), verified to work with TS 7
-- [ ] Vitest (root projects config), Biome, size-limit, Changesets, Playwright configs
-- [ ] `.editorconfig`, `.gitattributes`, `.gitignore`, `.nvmrc`
-- [ ] CI workflow skeleton with SHA-pinned actions and minimal permissions
+- [x] pnpm workspace (`packages/*`, `apps/*`, `examples/*`, `action`), `packageManager` pinned
+- [x] TypeScript 7 (`typescript@^7`) shared `tsconfig.base.json`: `strict`, ESM, `isolatedDeclarations` in publishable packages, no options deprecated in 6.0
+- [x] tsdown for library builds (ESM + `.d.ts` via oxc), verified to work with TS 7
+- [x] Vitest (root projects config), Biome, size-limit, Changesets, Playwright configs
+- [x] `.editorconfig`, `.gitattributes`, `.gitignore`, `.nvmrc`
+- [x] CI workflow skeleton with SHA-pinned actions and minimal permissions
 
 **Acceptance**: `pnpm install && pnpm lint && pnpm typecheck && pnpm test && pnpm build` pass on an empty-but-wired workspace; CI runs on Node 24 and 26.
 
 ## Phase 1 — Community files and repo governance
 
-- [ ] `LICENSE` (MIT), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md`
-- [ ] Issue forms (`bug_report.yml`, `feature_request.yml`, `config.yml`), PR template with `### shipdot` section
-- [ ] `CODEOWNERS`, `FUNDING.yml` (commented template), `dependabot.yml`
-- [ ] Workflows: `codeql.yml`, `scorecard.yml`
-- [ ] ADRs in `docs/adr/` (git as source of truth, sanitize at build, no backend, feed format v1)
-- [ ] Repo description and topics applied with `gh repo edit`
+- [x] `LICENSE` (MIT), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md`
+- [x] Issue forms (`bug_report.yml`, `feature_request.yml`, `config.yml`), PR template with `### shipdot` section
+- [x] `CODEOWNERS`, `FUNDING.yml` (commented template), `dependabot.yml`
+- [x] Workflows: `codeql.yml`, `scorecard.yml`
+- [x] ADRs in `docs/adr/` (git as source of truth, sanitize at build, no backend, feed format v1)
+- [x] Repo description and topics applied with `gh repo edit`
 
 **Acceptance**: every file listed in spec §5.7 exists (README is finished in phase 10); commands quoted in CONTRIBUTING match `AGENTS.md`.
 
 ## Phase 2 — `@shipdot/core`: schema, types, validation
 
-- [ ] Types: `Feed`, `FeedEntry`, `EntryType`, `ShipdotConfig`, `Diagnostic`
-- [ ] JSON Schemas: `schema/v1.json` (feed) and `schema/config.json`
-- [ ] `validateFeed()` (used by tests and LLM output checks) and `resolveLocale()`
-- [ ] `@shipdot/core/compile`: frontmatter parsing with line numbers, entry validation, translation pairing, Markdown → sanitized HTML (allowlist), relative asset collection, `shipdot.json` and `llms.txt`/`llms-full.txt` generation
-- [ ] Unit tests: parsing, every validation error, sanitization (XSS vectors), i18n pairing, ordering
+- [x] Types: `Feed`, `FeedEntry`, `EntryType`, `ShipdotConfig`, `Diagnostic`
+- [x] JSON Schemas: `schema/v1.json` (feed) and `schema/config.json`
+- [x] `validateFeed()` (used by tests and LLM output checks) and `resolveLocale()`
+- [x] `@shipdot/core/compile`: frontmatter parsing with line numbers, entry validation, translation pairing, Markdown → sanitized HTML (allowlist), relative asset collection, `shipdot.json` and `llms.txt`/`llms-full.txt` generation
+- [x] Unit tests: parsing, every validation error, sanitization (XSS vectors), i18n pairing, ordering
 
 **Acceptance**: core has ≥ 90% line coverage on validation/sanitization; XSS fixtures (script, `javascript:` links, event handlers, `data:` images, iframes) are all neutralized.
 
 ## Phase 3 — `@shipdot/cli`: `init`, `build`, `validate`
 
-- [ ] `shipdot init` (config + example entry + widget and Action snippets; refuses to overwrite)
-- [ ] `shipdot build` (writes `shipdot.json`, `llms.txt`, `llms-full.txt`, copies relative assets)
-- [ ] `shipdot validate` (`file:line:col` errors, exit code 1 on failure)
-- [ ] `--help` per command, `--version`, `--cwd`, `--config`; colored output that respects `NO_COLOR`
-- [ ] Fixture-based tests for each command
+- [x] `shipdot init` (config + example entry + widget and Action snippets; refuses to overwrite)
+- [x] `shipdot build` (writes `shipdot.json`, `llms.txt`, `llms-full.txt`, copies relative assets)
+- [x] `shipdot validate` (`file:line:col` errors, exit code 1 on failure)
+- [x] `--help` per command, `--version`, `--cwd`, `--config`; colored output that respects `NO_COLOR`
+- [x] Fixture-based tests for each command
 
 **Acceptance**: `shipdot init && shipdot build` in an empty dir produces a valid feed; `shipdot validate` on broken fixtures prints file and line for duplicate ids, invalid dates, unknown `type`, orphan translations and undeclared locales, and exits 1.
 
 ## Phase 4 — Widget: feed, counter, read state
 
-- [ ] `<ship-dot>` custom element, Shadow DOM, SSR-safe import
-- [ ] Attributes: `src`, `mode` (popover/drawer/modal), `locale`, `theme`, `first-visit`, `storage-key`
-- [ ] Trigger button with unread badge and `aria-label` with count; default slot for a custom trigger
-- [ ] Popover (Popover API), drawer and modal (`<dialog>`), Esc closes, focus returns to trigger
-- [ ] Read state in `localStorage` (`shipdot:<storage-key>`), bounded, try/catch, in-memory fallback
-- [ ] API: `open()`, `close()`, `markAllRead()`, `replayLatest()`, `refresh()`; events `shipdot:ready|open|close|read|error`
-- [ ] `::part()`s and documented CSS custom properties; light/dark/auto themes with AA contrast
-- [ ] Framework typings (React 19, Vue, Svelte, Astro)
-- [ ] size-limit budget ≤ 10 KB min+gzip in CI
+- [x] `<ship-dot>` custom element, Shadow DOM, SSR-safe import
+- [x] Attributes: `src`, `mode` (popover/drawer/modal), `locale`, `theme`, `first-visit`, `storage-key`
+- [x] Trigger button with unread badge and `aria-label` with count; default slot for a custom trigger
+- [x] Popover (Popover API), drawer and modal (`<dialog>`), Esc closes, focus returns to trigger
+- [x] Read state in `localStorage` (`shipdot:<storage-key>`), bounded, try/catch, in-memory fallback
+- [x] API: `open()`, `close()`, `markAllRead()`, `replayLatest()`, `refresh()`; events `shipdot:ready|open|close|read|error`
+- [x] `::part()`s and documented CSS custom properties; light/dark/auto themes with AA contrast
+- [x] Framework typings (React 19, Vue, Svelte, Astro)
+- [x] size-limit budget ≤ 10 KB min+gzip in CI
 
 **Acceptance**: unit tests for state/storage; e2e: open/close, counter, persistence after reload, keyboard navigation, axe passes on the open panel in every mode.
 
 ## Phase 5 — Widget: hotspots
 
-- [ ] Overlay layer (fixed, own shadow root) appended to `<body>`
-- [ ] Positioning with `getBoundingClientRect`, `ResizeObserver`, rAF-throttled scroll/resize
-- [ ] `MutationObserver` for late targets (SPA), disconnected when nothing is pending
-- [ ] Hidden when the target is not visible; `max-hotspots`; `hotspots="off"`
-- [ ] Tooltip with title, body, "Got it" (marks read); Esc closes; `shipdot:hotspot-click`
-- [ ] `prefers-reduced-motion`
+- [x] Overlay layer (fixed, own shadow root) appended to `<body>`
+- [x] Positioning with `getBoundingClientRect`, `ResizeObserver`, rAF-throttled scroll/resize
+- [x] `MutationObserver` for late targets (SPA), disconnected when nothing is pending
+- [x] Hidden when the target is not visible; `max-hotspots`; `hotspots="off"`
+- [x] Tooltip with title, body, "Got it" (marks read); Esc closes; `shipdot:hotspot-click`
+- [x] `prefers-reduced-motion`
 
 **Acceptance**: e2e: hotspot appears over the target, follows scroll, hides when the target is hidden, appears for a target added late, is keyboard reachable, and marking it read removes it across reloads.
 
 ## Phase 6 — i18n end to end
 
-- [ ] Translation files (`entry.es.md`) compiled into `i18n` map; undeclared locales and orphans are errors
-- [ ] Widget locale resolution (`locale` attribute → `navigator.languages` → `defaultLocale`), per-entry fallback
-- [ ] Built-in UI strings for en, es, pt; dates formatted with `Intl.DateTimeFormat`
+- [x] Translation files (`entry.es.md`) compiled into `i18n` map; undeclared locales and orphans are errors
+- [x] Widget locale resolution (`locale` attribute → `navigator.languages` → `defaultLocale`), per-entry fallback
+- [x] Built-in UI strings for en, es, pt; dates formatted with `Intl.DateTimeFormat`
 - [ ] Example entries translated (en/es/pt) in `.shipdot/entries/` and the examples
 
 **Acceptance**: unit + e2e test: `locale="es"` shows Spanish entries and UI; a missing translation falls back to the default locale.
@@ -151,8 +151,16 @@ Target: **MVP v0.1.0** (not published).
 
 - **Compile pipeline lives in `@shipdot/core/compile`, not in the CLI.** It is isomorphic (unified + rehype-sanitize + yaml, no Node APIs), so the docs playground runs exactly the same parsing and sanitization as `shipdot build`. The CLI only does file IO. Sanitization still happens at build time, never in the widget.
 - **`draft.excludeTypes` instead of "types to include".** Excluding non-user types (`chore`, `ci`, …) keeps PRs with non-conventional titles, which a strict include list would silently drop.
+- **Opening the feed marks every entry as read**, which also removes their hotspots. A separate "read in feed" vs "dismissed hotspot" state would need a second store; deferred (see roadmap "Show me").
+- **No "Mark all as read" button in the panel**: opening already marks everything read; `markAllRead()` stays in the JS API.
+- **Explicit Tab wrap-around in drawer/modal.** Chrome lets Tab leave a modal `<dialog>` for the browser UI; the widget wraps focus inside instead.
+- **Framework typings ship as opt-in subpaths** (`shipdot/react`, `shipdot/vue`, `shipdot/svelte`, `shipdot/astro`) so the main types never require React/Vue/Svelte to be installed.
 - **CI matrix Node 24 + 26.** Node 24 is the active LTS (minimum in `engines`); Node 26 becomes LTS on 2026-10-28. Node 22 is in maintenance and below the required minimum.
 
 ## Status log
 
 - 2026-10-14 — Setup: repository cloned (empty), `main` confirmed; npm names `shipdot`, `@shipdot/cli`, `@shipdot/core` available (the `@shipdot` org must be created manually). `AGENTS.md`, `CLAUDE.md` and `PLAN.md` written.
+- 2026-10-14 — Phase 0: pnpm 12 workspace, TypeScript 7.0.2 (`tsc` only), tsdown 0.23 with oxc `.d.ts` via `isolatedDeclarations`, Vitest 5, Biome 2.5, Playwright 1.64, size-limit, Changesets, CI on Node 24/26.
+- 2026-10-14 — Phases 2–3: `@shipdot/core` (schema v1 + config JSON Schemas, validation, compile pipeline with rehype-sanitize allowlist, llms.txt) and `@shipdot/cli` (`init`, `build`, `validate`, `draft` incl. LLM mode). `draft` was written early because it shares the CLI plumbing.
+- 2026-10-14 — Phase 1: community files, issue forms, PR template with `### shipdot`, CodeQL and Scorecard (skipped while the repo is private), ADRs 0001–0004.
+- 2026-10-14 — Phases 4–5: `<ship-dot>` widget (6.5 KB min+gzip), popover/drawer/modal, read state, events, hotspots overlay with ResizeObserver/MutationObserver; 17 unit tests and 19 Playwright tests with axe (fixed two real contrast issues found by axe).
