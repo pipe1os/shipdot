@@ -1,0 +1,8 @@
+[
+  {
+    "name": "<ship-dot> widget (min+gzip)",
+    "path": "packages/shipdot/dist/shipdot.js",
+    "limit": "10 KB",
+    "gzip": true
+  }
+]
