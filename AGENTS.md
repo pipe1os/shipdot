@@ -36,7 +36,7 @@ Requires Node.js `>=24` (see `.nvmrc`) and pnpm (version pinned in `packageManag
 | --- | --- |
 | Install | `pnpm install` |
 | Dev (docs + playground, widget from source) | `pnpm dev` |
-| Build everything | `pnpm build` |
+| Build everything | `pnpm build` (only the npm packages: `pnpm build:packages`) |
 | Unit tests (Vitest) | `pnpm test` |
 | E2E tests (Playwright + axe) | `pnpm test:e2e` (first time: `pnpm exec playwright install chromium`) |
 | Lint + format check (Biome) | `pnpm lint` (auto-fix: `pnpm format`) |
@@ -45,12 +45,13 @@ Requires Node.js `>=24` (see `.nvmrc`) and pnpm (version pinned in `packageManag
 | Docs site | `pnpm docs` (dev) / `pnpm docs:build` |
 | Rebuild Action bundle | `pnpm build:action` (CI fails if `action/dist` is stale) |
 | Add a changeset | `pnpm changeset` |
+| README screenshots | `pnpm docs:build && node scripts/screenshot.ts` |
 
 Run `pnpm lint && pnpm typecheck && pnpm test` before every commit that touches code.
 
 ## Conventions
 
-- **Language**: everything in the repo is English, except `README.es.md`.
+- **Language**: everything in the repo is English, except `README_es.md`.
 - **TypeScript 7** (`typescript@^7`, the native Go compiler), `strict`, ESM only. Publishable packages use `isolatedDeclarations`, so exported functions need explicit return types. `.d.ts` files are produced by tsdown via oxc, never by the TypeScript API.
 - **No tools that depend on the TypeScript programmatic API** (typescript-eslint, ts-morph, `astro check`, …). TS 7.0 has no stable API (it lands in 7.1). The docs site is not type-checked with `astro check` for this reason; its `.ts` code is checked with `tsc`.
 - **Naming**: files `kebab-case.ts`; types `PascalCase`; functions and variables `camelCase`; constants `UPPER_SNAKE_CASE` only for true module-level constants. Custom events are `shipdot:<name>`.
@@ -96,6 +97,14 @@ Run `pnpm lint && pnpm typecheck && pnpm test` before every commit that touches 
 - Use tools that depend on the TypeScript API, or options deprecated in TypeScript 6.0.
 - Commit secrets, tokens or `.env` files.
 
+## Tooling notes
+
+- pnpm enforces `minimumReleaseAge`: versions published less than a day ago are rejected. Pick the previous patch instead of relaxing the policy.
+- `shellEmulator: true` in `pnpm-workspace.yaml` makes `VAR=1 cmd` scripts work on every OS. Astro and Next.js scripts set `ASTRO_TELEMETRY_DISABLED=1` / `NEXT_TELEMETRY_DISABLED=1`.
+- Biome does not see template usage in `.astro`/`.vue` files, so unused-variable rules are off for them (`biome.json` overrides).
+- The CLI bin is a committed shim (`packages/cli/bin/shipdot.js`) so pnpm links it before the first build.
+
 ## Known technical debt
 
-- No `astro check` in `apps/docs` until TypeScript 7.1 ships a stable API.
+- No `astro check` in `apps/docs` until TypeScript 7.1 ships a stable API. Only `apps/docs/src/playground` is type-checked (with `tsc`); `.astro` files are not. No TypeScript 6 alias was needed because nothing else in the repo uses the TypeScript API.
+- Examples pin `react@19.3.0` and `next@16.4.0` because newer patches were less than a day old when added (pnpm `minimumReleaseAge`). Dependabot will bump them.

@@ -1,0 +1,28 @@
+# shipdot
+
+> Announce new features right where they live. In-app changelog and feature hotspots generated from your pull requests. Zero backend, tiny web component.
+
+shipdot has three parts: Markdown entries in `.shipdot/entries/` (git is the CMS), the `@shipdot/cli` CLI and GitHub Action (`init`, `build`, `validate`, `draft`), and the `<ship-dot>` web component (npm `shipdot`, zero dependencies, about 6.5 KB min+gzip). Entries with a `target` CSS selector put a pulsing hotspot on that element of the app. `shipdot build` sanitizes HTML at build time and writes `shipdot.json`, `llms.txt` and `llms-full.txt`. There is no backend and no telemetry; read state lives in the user's localStorage.
+
+## Docs
+
+- [Getting started](https://pipe1os.github.io/shipdot/getting-started/): init, write entries, build, add the widget
+- [Writing entries](https://pipe1os.github.io/shipdot/guides/writing-entries/): frontmatter fields, Markdown allowlist, images
+- [Hotspots](https://pipe1os.github.io/shipdot/guides/hotspots/): targets, behavior, styling
+- [Internationalization](https://pipe1os.github.io/shipdot/guides/i18n/): translation files and locale resolution
+- [Drafting from pull requests](https://pipe1os.github.io/shipdot/guides/drafting/): template mode, LLM mode, what is sent
+- [GitHub Action](https://pipe1os.github.io/shipdot/guides/github-action/): inputs, outputs, permissions
+- [Theming](https://pipe1os.github.io/shipdot/guides/theming/): custom properties, parts, custom trigger
+
+## Reference
+
+- [Widget](https://pipe1os.github.io/shipdot/reference/widget/): attributes, methods, events, accessibility, browser support
+- [CLI](https://pipe1os.github.io/shipdot/reference/cli/): commands and options
+- [Config](https://pipe1os.github.io/shipdot/reference/config/): shipdot.config.json
+- [Feed format](https://pipe1os.github.io/shipdot/reference/feed/): shipdot.json v1
+
+## Optional
+
+- [Repository](https://github.com/pipe1os/shipdot): source, examples for vanilla, React, Vue, Astro and Next.js
+- [Architecture decisions](https://github.com/pipe1os/shipdot/tree/main/docs/adr)
+- [What's new in shipdot](https://pipe1os.github.io/shipdot/llms.txt): shipdot's own release notes, built by shipdot

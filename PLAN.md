@@ -76,48 +76,48 @@ Target: **MVP v0.1.0** (not published).
 - [x] Translation files (`entry.es.md`) compiled into `i18n` map; undeclared locales and orphans are errors
 - [x] Widget locale resolution (`locale` attribute → `navigator.languages` → `defaultLocale`), per-entry fallback
 - [x] Built-in UI strings for en, es, pt; dates formatted with `Intl.DateTimeFormat`
-- [ ] Example entries translated (en/es/pt) in `.shipdot/entries/` and the examples
+- [x] Example entries translated (en/es/pt) in `.shipdot/entries/` and the examples
 
 **Acceptance**: unit + e2e test: `locale="es"` shows Spanish entries and UI; a missing translation falls back to the default locale.
 
 ## Phase 7 — `shipdot draft` from PRs
 
-- [ ] GitHub REST client (fetch): merged PRs into base branch since last tag (GraphQL) or latest entry date; `--since` override
-- [ ] Filters: `skip-shipdot` label, bot authors, non-user conventional types (configurable)
-- [ ] Template mode: `### shipdot` section (`title:`, `type:`, `target:` header lines, `skip`), else title derived from PR title
-- [ ] LLM mode (BYOK): `anthropic` and `openai-compatible` via fetch; delimiters + system prompt; JSON output validated; translations for configured locales; fallback to template mode
-- [ ] Skip PRs that already have an entry (`pr:` frontmatter field)
-- [ ] Tests with mocked `fetch`
+- [x] GitHub REST client (fetch): merged PRs into base branch since last tag (GraphQL) or latest entry date; `--since` override
+- [x] Filters: `skip-shipdot` label, bot authors, non-user conventional types (configurable)
+- [x] Template mode: `### shipdot` section (`title:`, `type:`, `target:` header lines, `skip`), else title derived from PR title
+- [x] LLM mode (BYOK): `anthropic` and `openai-compatible` via fetch; delimiters + system prompt; JSON output validated; translations for configured locales; fallback to template mode
+- [x] Skip PRs that already have an entry (`pr:` frontmatter field)
+- [x] Tests with mocked `fetch`
 
 **Acceptance**: `shipdot draft --dry-run` against `pipe1os/shipdot` lists real merged PRs in template mode; LLM mode tests cover success, invalid JSON, schema violations and prompt-injection-shaped bodies.
 
 ## Phase 8 — GitHub Action
 
-- [ ] `action.yml` (root), `runs.using: node24`, bundle in `action/dist/index.js`
-- [ ] Inputs: `command`, `github-token`, `base-branch`, `llm-provider`, `llm-api-key`, `llm-model`, `llm-base-url`, `working-directory`; outputs
-- [ ] `draft`: creates branch `shipdot/draft-YYYY-MM-DD` and opens a PR via the REST API (no shell)
-- [ ] `build`: runs the build in `working-directory`
-- [ ] Secrets masked with `core.setSecret`; CI checks `action/dist` is up to date
-- [ ] Workflows: `shipdot.yml` (dogfooding), example workflow in README and `examples/`
+- [x] `action.yml` (root), `runs.using: node24`, bundle in `action/dist/index.js`
+- [x] Inputs: `command`, `github-token`, `base-branch`, `llm-provider`, `llm-api-key`, `llm-model`, `llm-base-url`, `working-directory`; outputs
+- [x] `draft`: creates branch `shipdot/draft-YYYY-MM-DD` and opens a PR via the REST API (no shell)
+- [x] `build`: runs the build in `working-directory`
+- [x] Secrets masked with `core.setSecret`; CI checks `action/dist` is up to date
+- [x] Workflows: `shipdot.yml` (dogfooding), example workflow in README and `examples/`
 
 **Acceptance**: unit tests with mocked GitHub API; `check:action` passes in CI.
 
 ## Phase 9 — Docs site, playground, examples
 
-- [ ] Astro Starlight site in `apps/docs`: getting started, widget/CLI/Action/config reference, i18n, theming, hotspots, LLM privacy, framework guides, FAQ
-- [ ] Playground: entry editors (Markdown) + live widget on a fake dashboard with an "Export" button hotspot; mode/theme/locale switches; compiled with the same `@shipdot/core/compile` pipeline as the CLI
-- [ ] `docs.yml`: build on PRs, deploy to GitHub Pages from `main`
-- [ ] `examples/`: vanilla, react, vue, astro, next (minimal, working, each with README)
+- [x] Astro Starlight site in `apps/docs`: getting started, widget/CLI/Action/config reference, i18n, theming, hotspots, LLM privacy, framework guides, FAQ
+- [x] Playground: entry editors (Markdown) + live widget on a fake dashboard with an "Export" button hotspot; mode/theme/locale switches; compiled with the same `@shipdot/core/compile` pipeline as the CLI
+- [x] `docs.yml`: build on PRs, deploy to GitHub Pages from `main`
+- [x] `examples/`: vanilla, react, vue, astro, next (minimal, working, each with README)
 
 **Acceptance**: `pnpm docs:build` succeeds; every example builds; `examples/vanilla` runs `shipdot init → entry → build` and shows the entry with a hotspot.
 
 ## Phase 10 — Release readiness v0.1.0 (not published)
 
-- [ ] README (EN) at top-OSS level with real Playwright-generated screenshot; `README.es.md` full translation
-- [ ] `llms.txt` for the repo
-- [ ] `release.yml`: Changesets + npm provenance/trusted publishing, gated until npm is configured
-- [ ] Initial changeset for v0.1.0
-- [ ] `pnpm -r pack --dry-run`: `exports`, types, `files`, `license`, `repository`, `README` correct
+- [x] README (EN) at top-OSS level with real Playwright-generated screenshot; `README_es.md` full translation
+- [x] `llms.txt` for the repo
+- [x] `release.yml`: Changesets + npm provenance/trusted publishing, gated until npm is configured
+- [x] Initial changeset for v0.1.0
+- [x] `pnpm -r pack --dry-run`: `exports`, types, `files`, `license`, `repository`, `README` correct
 - [ ] Definition of Done (below) verified from a clean clone
 
 ## Definition of Done (MVP)
@@ -155,6 +155,13 @@ Target: **MVP v0.1.0** (not published).
 - **No "Mark all as read" button in the panel**: opening already marks everything read; `markAllRead()` stays in the JS API.
 - **Explicit Tab wrap-around in drawer/modal.** Chrome lets Tab leave a modal `<dialog>` for the browser UI; the widget wraps focus inside instead.
 - **Framework typings ship as opt-in subpaths** (`shipdot/react`, `shipdot/vue`, `shipdot/svelte`, `shipdot/astro`) so the main types never require React/Vue/Svelte to be installed.
+- **Hotspots use their own color** (`--shipdot-hotspot`, pink by default) instead of the accent, so they stay visible on brand-colored buttons. Tooltips are anchored below the target element, not the dot.
+- **No comparison with other projects anywhere** (README, docs). Requested by the maintainer; "Why shipdot" describes shipdot on its own terms. This replaces the comparison table asked for in the original brief.
+- **The Spanish README is `README_es.md`** (not `README.es.md`), linked from the top of `README.md`, as requested by the maintainer. No emojis in READMEs except the language flags.
+- **Changesets `fixed` group**: `shipdot`, `@shipdot/core` and `@shipdot/cli` share one version while in `0.x`.
+- **Type-only optional peer dependencies** on the widget (`@types/react`, `vue`, `svelte`, `astro`) so `shipdot/react` & co. resolve under strict installs (pnpm). They are not runtime dependencies.
+- **`pnpm build` includes docs and examples**, so CI proves every example builds. CI builds before type-checking because docs and examples type-check against the built packages.
+- **CodeQL, Scorecard and the Pages deploy are skipped while the repository is private** (they need a public repo or a paid plan); they run automatically once it is public.
 - **CI matrix Node 24 + 26.** Node 24 is the active LTS (minimum in `engines`); Node 26 becomes LTS on 2026-10-28. Node 22 is in maintenance and below the required minimum.
 
 ## Status log
