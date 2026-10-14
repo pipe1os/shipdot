@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-14T21:00:00Z",
+  "defaultLocale": "en",
+  "entries": [
+    {
+      "id": "2026-10-14-export-excel",
+      "date": "2026-10-14",
+      "type": "new",
+      "title": "Export to Excel",
+      "html": "<p>You can now export any report to <strong>Excel</strong> with one click.</p>",
+      "target": "#btn-export",
+      "link": "https://example.com/docs/export",
+      "i18n": {
+        "es": {
+          "title": "Exportar a Excel",
+          "html": "<p>Ahora puedes exportar cualquier reporte a <strong>Excel</strong>.</p>"
+        }
+      }
+    },
+    {
+      "id": "2026-09-01-faster-search",
+      "date": "2026-09-01",
+      "type": "improved",
+      "title": "Faster search",
+      "html": "<p>Search results now show up twice as fast.</p>"
+    },
+    {
+      "id": "2026-08-01-fixed-dates",
+      "date": "2026-08-01",
+      "type": "fixed",
+      "title": "Dates are no longer off by one",
+      "html": "<p>Reports now use your time zone.</p>"
+    }
+  ]
+}
