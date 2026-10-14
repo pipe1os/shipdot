@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="48" viewBox="0 0 200 48" role="img" aria-label="shipdot">
+  <circle cx="24" cy="24" r="21" fill="none" stroke="#a5b4fc" stroke-opacity=".18" stroke-width="2"/>
+  <circle cx="24" cy="24" r="14" fill="none" stroke="#a5b4fc" stroke-opacity=".4" stroke-width="2.5"/>
+  <circle cx="24" cy="24" r="7" fill="#a5b4fc"/>
+  <text x="56" y="33" fill="#fafafa" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="29" font-weight="700" letter-spacing="-0.5">shipdot</text>
+</svg>
