@@ -1,0 +1,3 @@
+---
+title: B en français
+---

@@ -1,0 +1,52 @@
+{
+  "name": "@shipdot/cli",
+  "version": "0.0.0",
+  "description": "Turn merged pull requests into reviewed in-app release notes. Builds shipdot.json and llms.txt from Markdown entries.",
+  "keywords": [
+    "shipdot",
+    "changelog",
+    "release-notes",
+    "whats-new",
+    "cli",
+    "github",
+    "llms-txt"
+  ],
+  "homepage": "https://pipe1os.github.io/shipdot/",
+  "bugs": "https://github.com/pipe1os/shipdot/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pipe1os/shipdot.git",
+    "directory": "packages/cli"
+  },
+  "license": "MIT",
+  "author": "pipe1os",
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "shipdot": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@shipdot/core": "workspace:^"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

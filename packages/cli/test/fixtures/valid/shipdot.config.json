@@ -1,0 +1,6 @@
+{
+  "name": "Acme",
+  "outDir": "dist-site",
+  "defaultLocale": "en",
+  "locales": ["en", "es"]
+}
