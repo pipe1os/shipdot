@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version or publish packages
+    # Disabled until npm is set up. To enable:
+    #   1. Create the @shipdot organization on npmjs.com.
+    #   2. Configure trusted publishing for shipdot, @shipdot/core and @shipdot/cli with this
+    #      repository and the workflow file "release.yml".
+    #   3. Set the repository variable SHIPDOT_RELEASE_ENABLED to "true".
+    if: ${{ vars.SHIPDOT_RELEASE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # version commits and tags
+      pull-requests: write # the "Version packages" pull request
+      id-token: write # npm trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          version: pnpm version-packages
+          publish: pnpm release
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'

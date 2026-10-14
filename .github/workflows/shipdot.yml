@@ -1,0 +1,27 @@
+# Dogfooding: shipdot drafts its own in-app release notes from merged pull requests.
+name: shipdot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 1' # Mondays 09:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./
+        with:
+          command: draft
+          # Optional LLM mode: add the SHIPDOT_LLM_API_KEY secret to enable it.
+          llm-provider: ${{ secrets.SHIPDOT_LLM_API_KEY && 'anthropic' || '' }}
+          llm-api-key: ${{ secrets.SHIPDOT_LLM_API_KEY }}

@@ -38,6 +38,9 @@ jobs:
       - name: Widget size budget
         if: matrix.node == 24
         run: pnpm size
+      - name: Action bundle is up to date
+        if: matrix.node == 24
+        run: pnpm check:action
 
   e2e:
     name: E2E and accessibility
