@@ -1,0 +1,28 @@
+# Copy to .github/workflows/shipdot.yml in your repository.
+name: shipdot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 1' # Mondays 09:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  # Opens a pull request with draft entries for PRs merged since the last release.
+  draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pipe1os/shipdot@v0
+        with:
+          command: draft
+          # Optional: rewrite and translate drafts with your own LLM key.
+          # llm-provider: anthropic
+          # llm-api-key: ${{ secrets.SHIPDOT_LLM_API_KEY }}

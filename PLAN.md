@@ -118,22 +118,22 @@ Target: **MVP v0.1.0** (not published).
 - [x] `release.yml`: Changesets + npm provenance/trusted publishing, gated until npm is configured
 - [x] Initial changeset for v0.1.0
 - [x] `pnpm -r pack --dry-run`: `exports`, types, `files`, `license`, `repository`, `README` correct
-- [ ] Definition of Done (below) verified from a clean clone
+- [x] Definition of Done (below) verified from a clean clone
 
 ## Definition of Done (MVP)
 
-- [ ] `pnpm install && pnpm build && pnpm test && pnpm test:e2e && pnpm lint && pnpm typecheck` green from a clean clone
-- [ ] Widget ≤ 10 KB min+gzip (size-limit)
-- [ ] `shipdot init` → entry → `shipdot build` → widget with hotspot works in `examples/vanilla`
-- [ ] `shipdot draft` works in template mode against this repo; LLM mode tested with mocked fetch
-- [ ] Action has an up-to-date `action/dist` and an example workflow
-- [ ] i18n end to end (en + es at least) with fallback
-- [ ] Docs + playground build; Pages workflow ready
-- [ ] All §5.7 files exist and are consistent (same commands and names in README, CONTRIBUTING, AGENTS.md, docs)
-- [ ] Packages pack correctly
-- [ ] Initial changeset for v0.1.0
-- [ ] PLAN.md fully ticked with a complete status log
-- [ ] Everything pushed to `main`
+- [x] `pnpm install && pnpm build && pnpm test && pnpm test:e2e && pnpm lint && pnpm typecheck` green from a clean clone
+- [x] Widget ≤ 10 KB min+gzip (size-limit)
+- [x] `shipdot init` → entry → `shipdot build` → widget with hotspot works in `examples/vanilla`
+- [x] `shipdot draft` works in template mode against this repo; LLM mode tested with mocked fetch
+- [x] Action has an up-to-date `action/dist` and an example workflow
+- [x] i18n end to end (en + es at least) with fallback
+- [x] Docs + playground build; Pages workflow ready
+- [x] All §5.7 files exist and are consistent (same commands and names in README, CONTRIBUTING, AGENTS.md, docs)
+- [x] Packages pack correctly
+- [x] Initial changeset for v0.1.0
+- [x] PLAN.md fully ticked with a complete status log
+- [x] Everything pushed to `main`
 
 ## Post-MVP / Roadmap
 
@@ -171,3 +171,7 @@ Target: **MVP v0.1.0** (not published).
 - 2026-10-14 — Phases 2–3: `@shipdot/core` (schema v1 + config JSON Schemas, validation, compile pipeline with rehype-sanitize allowlist, llms.txt) and `@shipdot/cli` (`init`, `build`, `validate`, `draft` incl. LLM mode). `draft` was written early because it shares the CLI plumbing.
 - 2026-10-14 — Phase 1: community files, issue forms, PR template with `### shipdot`, CodeQL and Scorecard (skipped while the repo is private), ADRs 0001–0004.
 - 2026-10-14 — Phases 4–5: `<ship-dot>` widget (6.5 KB min+gzip), popover/drawer/modal, read state, events, hotspots overlay with ResizeObserver/MutationObserver; 17 unit tests and 19 Playwright tests with axe (fixed two real contrast issues found by axe).
+- 2026-10-14 — Phase 8: GitHub Action (`action.yml`, `node24`, 1.5 MB self-contained bundle in `action/dist`, deterministic and checked in CI), dogfooding workflow `shipdot.yml`, `release.yml` gated behind the `SHIPDOT_RELEASE_ENABLED` repository variable.
+- 2026-10-14 — Phase 9: Starlight docs site (23 pages) with the live playground (compiles entries in the browser with `@shipdot/core/compile`), `docs.yml` for GitHub Pages, examples for vanilla, React, Vue, Astro, Next.js and the GitHub Action. Widget tweaks found while building the playground: dedicated hotspot color and tooltips anchored to the target.
+- 2026-10-14 — Phase 10: README with Playwright-generated screenshots, `README_es.md`, repo `llms.txt`, package READMEs and licenses, Changesets config and initial v0.1.0 changeset (not published). Tarballs installed in a clean project: `init`, `build`, SSR import and `@shipdot/core/compile` work.
+- 2026-10-14 — Definition of Done verified from a clean clone (install, build, 115 unit tests, 19 e2e tests with axe, lint, typecheck, size 6.47 KB, Action bundle up to date). `shipdot draft --dry-run` drafted PR #2 of this repository in template mode from its `### shipdot` section. MVP complete.
