@@ -1,0 +1,15 @@
+{
+  "name": "@shipdot/action",
+  "private": true,
+  "description": "GitHub Action for shipdot: draft entries from merged pull requests, or build shipdot.json.",
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@shipdot/cli": "workspace:^",
+    "@shipdot/core": "workspace:^"
+  }
+}

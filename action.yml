@@ -1,0 +1,44 @@
+name: shipdot
+description: Draft in-app release notes from merged pull requests, or build shipdot.json and llms.txt.
+author: pipe1os
+branding:
+  icon: bell
+  color: purple
+
+inputs:
+  command:
+    description: '`draft` opens a pull request with draft entries; `build` writes shipdot.json, llms.txt and llms-full.txt.'
+    default: draft
+  github-token:
+    description: 'Token to read pull requests and open the draft pull request. `draft` needs `contents: write` and `pull-requests: write`.'
+    default: ${{ github.token }}
+  base-branch:
+    description: Branch the pull requests are merged into. Defaults to `draft.baseBranch` in shipdot.config.json, then the repository default branch.
+    required: false
+  llm-provider:
+    description: 'Optional LLM to rewrite and translate drafts: `anthropic` or `openai-compatible`. Only pull request titles and bodies are sent.'
+    required: false
+  llm-api-key:
+    description: API key for the LLM provider. Pass it from a secret; it is masked in logs.
+    required: false
+  llm-model:
+    description: Model name. Defaults to claude-opus-5-5 for `anthropic`; required for `openai-compatible`.
+    required: false
+  llm-base-url:
+    description: Base URL for `openai-compatible` providers (default https://api.openai.com/v1).
+    required: false
+  working-directory:
+    description: Folder that contains shipdot.config.json, relative to the repository root.
+    default: .
+
+outputs:
+  entries:
+    description: Number of entries drafted (`draft`) or built (`build`).
+  pull-request-url:
+    description: URL of the draft pull request, when one was opened or already open.
+  pull-request-number:
+    description: Number of the draft pull request.
+
+runs:
+  using: node24
+  main: action/dist/index.js
