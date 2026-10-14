@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unpkg.com/@shipdot/core/schema/config.json",
+  "title": "shipdot.config.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": { "type": "string", "description": "Product name, used in llms.txt." },
+    "description": { "type": "string", "description": "One-line summary, used in llms.txt." },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Public URL where shipdot.json and llms.txt are served."
+    },
+    "entriesDir": {
+      "type": "string",
+      "default": ".shipdot/entries",
+      "description": "Folder with the Markdown entries."
+    },
+    "outDir": {
+      "type": "string",
+      "default": "public",
+      "description": "Where shipdot.json, llms.txt, llms-full.txt and shipdot-assets/ are written."
+    },
+    "defaultLocale": { "type": "string", "default": "en" },
+    "locales": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": ["en"],
+      "description": "Every locale you translate into, including the default one."
+    },
+    "llm": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional LLM rewriting for `shipdot draft`. The API key is only read from SHIPDOT_LLM_API_KEY.",
+      "properties": {
+        "provider": { "enum": ["anthropic", "openai-compatible"] },
+        "model": { "type": "string" },
+        "baseUrl": { "type": "string", "format": "uri" }
+      }
+    },
+    "draft": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "baseBranch": {
+          "type": "string",
+          "description": "Defaults to the repository default branch."
+        },
+        "ignoreLabels": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["skip-shipdot"]
+        },
+        "excludeTypes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["chore", "ci", "test", "docs", "refactor", "build", "style", "revert"],
+          "description": "Conventional commit types that never produce an entry."
+        },
+        "excludeAuthors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["dependabot[bot]", "renovate[bot]", "github-actions[bot]"],
+          "description": "GitHub logins to skip, in addition to every bot account."
+        }
+      }
+    }
+  }
+}

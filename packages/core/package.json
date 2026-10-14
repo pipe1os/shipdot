@@ -1,0 +1,59 @@
+{
+  "name": "@shipdot/core",
+  "version": "0.0.0",
+  "description": "Feed schema, types, validation and the isomorphic compile pipeline behind shipdot.",
+  "keywords": [
+    "shipdot",
+    "changelog",
+    "release-notes",
+    "whats-new",
+    "json-schema"
+  ],
+  "homepage": "https://pipe1os.github.io/shipdot/",
+  "bugs": "https://github.com/pipe1os/shipdot/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pipe1os/shipdot.git",
+    "directory": "packages/core"
+  },
+  "license": "MIT",
+  "author": "pipe1os",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./compile": {
+      "types": "./dist/compile.d.ts",
+      "default": "./dist/compile.js"
+    },
+    "./schema/v1.json": "./schema/v1.json",
+    "./schema/config.json": "./schema/config.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "schema"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5",
+    "yaml": "^2.9.1"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
