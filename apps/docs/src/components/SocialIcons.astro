@@ -1,0 +1,29 @@
+---
+import Default from '@astrojs/starlight/components/SocialIcons.astro'
+
+const feed = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/shipdot.json`
+---
+
+<ship-dot src={feed} storage-key="docs" first-visit="show-latest" class="docs-widget"></ship-dot>
+<Default><slot /></Default>
+
+<script>
+  import 'shipdot'
+
+  // Follow Starlight's theme toggle instead of the OS preference.
+  const widget = document.querySelector<HTMLElement>('ship-dot.docs-widget')
+  const sync = () =>
+    widget?.setAttribute('theme', document.documentElement.dataset.theme === 'light' ? 'light' : 'dark')
+  sync()
+  new MutationObserver(sync).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
+</script>
+
+<style>
+  ship-dot {
+    color: var(--sl-color-text-accent);
+    --shipdot-trigger-size: 36px;
+  }
+</style>
