@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/pipe1os/shipdot/discussions
+    about: Ask questions and discuss ideas in GitHub Discussions.
+  - name: Security vulnerability
+    url: https://github.com/pipe1os/shipdot/security/advisories/new
+    about: Report security issues privately. Please do not open a public issue.
+  - name: Documentation
+    url: https://pipe1os.github.io/shipdot/
+    about: Guides and reference for the widget, CLI and Action.

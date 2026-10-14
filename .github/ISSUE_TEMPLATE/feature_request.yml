@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest an idea for shipdot
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Big ideas are welcome! For open-ended discussions, start in GitHub Discussions (Ideas) first. Note: shipdot intentionally has no backend, no telemetry, and a widget budget of 10 KB min+gzip; proposals must fit those constraints."
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+    validations:
+      required: false
+  - type: dropdown
+    id: package
+    attributes:
+      label: Which part would change?
+      options:
+        - "shipdot (the <ship-dot> widget)"
+        - "@shipdot/cli"
+        - "@shipdot/core"
+        - "GitHub Action"
+        - "Docs or playground"
+        - "Not sure"
+    validations:
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and discussions.
+          required: true

@@ -1,0 +1,67 @@
+name: Bug report
+description: Something in shipdot does not work as documented
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for taking the time to report a bug. Please search existing issues first. For security issues, do NOT open an issue: use https://github.com/pipe1os/shipdot/security/advisories/new"
+  - type: dropdown
+    id: package
+    attributes:
+      label: Which part is affected?
+      options:
+        - "shipdot (the <ship-dot> widget)"
+        - "@shipdot/cli"
+        - "@shipdot/core"
+        - "GitHub Action"
+        - "Docs or playground"
+        - "Not sure"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps, ideally with the entry file, shipdot.json or a link to a repository.
+      placeholder: "1. ...\n2. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser and version, framework, Node.js version, OS.
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: CLI output or browser console errors.
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I read the Code of Conduct.
+          required: true
