@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2023", "dom"],
+    "declaration": true,
+    "isolatedDeclarations": true
+  },
+  "include": ["src", "test"]
+}

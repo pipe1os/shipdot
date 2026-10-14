@@ -233,6 +233,12 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
+  packages/shipdot:
+    devDependencies:
+      '@shipdot/core':
+        specifier: workspace:^
+        version: link:../core
+
 packages:
 
   '@axe-core/playwright@4.13.0':

@@ -1,0 +1,64 @@
+{
+  "name": "shipdot",
+  "version": "0.0.0",
+  "description": "<ship-dot>: a tiny, zero-dependency web component for in-app changelogs and feature hotspots.",
+  "keywords": [
+    "changelog",
+    "release-notes",
+    "whats-new",
+    "web-components",
+    "custom-element",
+    "product-updates",
+    "onboarding",
+    "hotspot"
+  ],
+  "homepage": "https://pipe1os.github.io/shipdot/",
+  "bugs": "https://github.com/pipe1os/shipdot/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pipe1os/shipdot.git",
+    "directory": "packages/shipdot"
+  },
+  "license": "MIT",
+  "author": "pipe1os",
+  "type": "module",
+  "sideEffects": [
+    "./dist/shipdot.js"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/shipdot.d.ts",
+      "default": "./dist/shipdot.js"
+    },
+    "./react": {
+      "types": "./types/react.d.ts"
+    },
+    "./vue": {
+      "types": "./types/vue.d.ts"
+    },
+    "./svelte": {
+      "types": "./types/svelte.d.ts"
+    },
+    "./astro": {
+      "types": "./types/astro.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "unpkg": "./dist/shipdot.js",
+  "jsdelivr": "./dist/shipdot.js",
+  "files": [
+    "dist",
+    "types"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@shipdot/core": "workspace:^"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
