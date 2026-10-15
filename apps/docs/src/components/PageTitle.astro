@@ -1,0 +1,224 @@
+---
+// Page title plus a "Copy page" menu that copies the page as Markdown (for LLMs and agents).
+import { Icon } from '@astrojs/starlight/components'
+import Default from '@astrojs/starlight/components/PageTitle.astro'
+
+const { entry } = Astro.locals.starlightRoute
+// Only `.md` pages have a Markdown twin (see src/pages/[...slug].md.ts).
+const markdown = entry.filePath?.endsWith('.md')
+  ? `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${entry.id}.md`
+  : undefined
+---
+
+<div class="title-row">
+  <Default />
+  {
+    markdown && (
+      <div class="page-actions" data-markdown={markdown}>
+        <div class="split">
+          <button type="button" data-copy>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="12" height="12" rx="2" />
+              <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+            </svg>
+            <span data-label>Copy page</span>
+          </button>
+          <button
+            type="button"
+            class="toggle"
+            aria-label="More page actions"
+            aria-expanded="false"
+            aria-controls="page-actions-menu"
+          >
+            <Icon name="down-caret" size="1rem" />
+          </button>
+        </div>
+        <ul id="page-actions-menu" class="menu" hidden>
+          <li>
+            <button type="button" data-copy>
+              <strong>Copy page</strong>
+              <span>Copy page as Markdown for LLMs</span>
+            </button>
+          </li>
+          <li>
+            <a href={markdown}>
+              <strong>View as Markdown</strong>
+              <span>Open this page as plain text</span>
+            </a>
+          </li>
+        </ul>
+        <span class="sr-only" role="status" data-status />
+      </div>
+    )
+  }
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.page-actions')
+  if (root) {
+    const url = root.dataset.markdown as string
+    const toggle = root.querySelector('.toggle') as HTMLButtonElement
+    const menu = root.querySelector('.menu') as HTMLElement
+    const label = root.querySelector('[data-label]') as HTMLElement
+    const status = root.querySelector('[data-status]') as HTMLElement
+    let reset: ReturnType<typeof setTimeout> | undefined
+
+    const setOpen = (open: boolean) => {
+      menu.hidden = !open
+      toggle.setAttribute('aria-expanded', String(open))
+    }
+
+    const announce = (short: string, long: string) => {
+      label.textContent = short
+      status.textContent = long
+      clearTimeout(reset)
+      reset = setTimeout(() => {
+        label.textContent = 'Copy page'
+        status.textContent = ''
+      }, 2000)
+    }
+
+    const copy = async () => {
+      const text = fetch(url).then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.text()
+      })
+      try {
+        try {
+          // Safari only allows clipboard writes that start in the click handler, so pass a promise.
+          const blob = text.then((t) => new Blob([t], { type: 'text/plain' }))
+          await navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })])
+        } catch {
+          await navigator.clipboard.writeText(await text)
+        }
+        announce('Copied', 'Page copied as Markdown')
+      } catch {
+        announce('Copy failed', 'Could not copy the page')
+      }
+    }
+
+    for (const button of root.querySelectorAll('[data-copy]')) {
+      button.addEventListener('click', () => {
+        if (!menu.hidden) {
+          setOpen(false)
+          toggle.focus()
+        }
+        void copy()
+      })
+    }
+
+    toggle.addEventListener('click', () => setOpen(menu.hidden))
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !menu.hidden) {
+        setOpen(false)
+        toggle.focus()
+      }
+    })
+    root.addEventListener('focusout', (event) => {
+      if (!root.contains(event.relatedTarget as Node | null)) setOpen(false)
+    })
+    document.addEventListener('click', (event) => {
+      if (!root.contains(event.target as Node)) setOpen(false)
+    })
+  }
+</script>
+
+<style>
+  .title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-top: 1rem;
+  }
+  .title-row :global(h1) {
+    margin-top: 0;
+  }
+  .page-actions {
+    position: relative;
+    margin-inline-start: auto;
+  }
+  .split {
+    display: flex;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  .split button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--sl-color-white);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    cursor: pointer;
+  }
+  .split .toggle {
+    padding-inline: 0.5rem;
+    border-inline-start: 1px solid var(--sl-color-gray-5);
+  }
+  .split button:hover,
+  .split button[aria-expanded='true'] {
+    background: var(--sl-color-gray-6);
+  }
+  .split button:focus-visible {
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: var(--sl-outline-offset-inside);
+  }
+  .menu {
+    position: absolute;
+    inset-inline-end: 0;
+    top: calc(100% + 0.5rem);
+    z-index: var(--sl-z-index-menu);
+    width: max-content;
+    max-width: min(20rem, calc(100vw - 2rem));
+    margin: 0;
+    padding: 0.375rem;
+    list-style: none;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    background: var(--sl-color-bg);
+    box-shadow: var(--sl-shadow-md);
+  }
+  .menu li + li {
+    margin-top: 0.125rem;
+  }
+  .menu button,
+  .menu a {
+    display: grid;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--sl-color-white);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    line-height: 1.4;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .menu strong {
+    font-weight: 600;
+  }
+  .menu span {
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+  }
+  .menu button:hover,
+  .menu a:hover,
+  .menu button:focus-visible,
+  .menu a:focus-visible {
+    background: var(--sl-color-gray-6);
+  }
+  .menu button:focus-visible,
+  .menu a:focus-visible {
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: var(--sl-outline-offset-inside);
+  }
+</style>
