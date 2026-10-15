@@ -38,7 +38,7 @@ Refactors the exporter and adds an XLSX writer.
 ### shipdot
 title: Export to Excel
 type: new
-target: #btn-export
+target: "#btn-export"
 
 You can now export any report to Excel with one click.
 ```

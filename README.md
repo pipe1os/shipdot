@@ -5,7 +5,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg">
-    <img src=".github/assets/logo-light.svg" alt="shipdot" width="260">
+    <img src=".github/assets/logo-light.svg" alt="shipdot" width="212">
   </picture>
 </p>
 
@@ -24,13 +24,14 @@
 <p align="center">
   <a href="https://pipe1os.github.io/shipdot/">Docs</a> ·
   <a href="https://pipe1os.github.io/shipdot/playground/">Playground</a> ·
-  <a href="https://pipe1os.github.io/shipdot/getting-started/">Getting started</a>
+  <a href="https://pipe1os.github.io/shipdot/getting-started/">Getting started</a> ·
+  <a href="packages/shipdot/CHANGELOG.md">Changelog</a>
 </p>
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/hero-dark.png">
-    <img src=".github/assets/hero-light.png" alt="A demo analytics app with pulsing hotspots on its Filter and Export buttons and a tooltip announcing Export to Excel, next to the Markdown entry with target: #btn-export that put it there" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/hero-dark.webp">
+    <img src=".github/assets/hero-light.webp" alt="A demo analytics app with pulsing hotspots on its Filter and Export buttons and a tooltip announcing Export to Excel, next to the Markdown entry with target: #btn-export that put it there" width="100%">
   </picture>
 </p>
 
@@ -38,27 +39,29 @@
 
 **shipdot** shows your users what changed, inside your app: a bell with an unread count, a "What's new" panel, and **hotspots**, pulsing dots on the exact buttons a new feature lives in. Updates are Markdown files in your repository, drafted from your merged pull requests and reviewed like code. There is no server, database, account or tracking.
 
+> [!NOTE]
+> shipdot is young (`0.x`). The `shipdot.json` format is versioned and stable; the widget, CLI and Action may still change between minor versions. Every change is in the [changelog](packages/shipdot/CHANGELOG.md).
+
 ## Why shipdot
 
-- **Hotspots on the real UI.** An entry with `target: "#btn-export"` puts a dot on that button. Telling users a feature exists is good; pointing at it is better.
+- **Hotspots on the real UI.** An entry with `target: "#btn-export"` puts a pulsing dot on that button. Telling users a feature exists is good; pointing at it is better. Hotspots follow their target on scroll and resize, wait for elements rendered late in SPAs, and hide when the target is hidden.
 - **Git-native, reviewed by a human.** `shipdot draft` turns merged pull requests into notes written for end users and opens a pull request. You fix the wording, merge, ship.
-- **Multi-language from day one.** `entry.es.md` next to `entry.md`. The widget picks the user's language and falls back gracefully.
-- **Nothing to run or pay for per user.** A static `shipdot.json` and a 6.5 KB web component. Your announcements stay in your repository, and your users' data stays in their browser.
+- **Multi-language from day one.** `entry.es.md` next to `entry.md`. The widget picks the user's language, falls back per entry, and ships its UI strings in English, Spanish and Portuguese.
+- **Nothing to run or pay for per user.** A static `shipdot.json` and a web component under 7 KB min+gzip. No backend and no telemetry: your announcements stay in your repository, and read state stays in your users' browsers.
 
 ## Features
 
-- **Hotspots** that follow their target on scroll and resize, wait for elements rendered late in SPAs, and hide when the target is hidden.
 - **Feed panel** as a popover, drawer or modal, with an unread badge.
-- **`shipdot draft`**: offline template mode, or rewrite and translate with your own LLM key (Anthropic or any OpenAI-compatible API).
-- **GitHub Action** that opens a pull request with the drafts every week.
-- **i18n**: translated entries, locale detection, per-entry fallback, built-in UI strings in English, Spanish and Portuguese.
-- **6.5 KB min+gzip**, zero runtime dependencies, Shadow DOM, enforced in CI.
+- **Drafts from pull requests**: offline template mode, or rewrite and translate with your own LLM key (Anthropic or any OpenAI-compatible API).
+- **GitHub Action** that opens a pull request with new drafts every week.
+- **Zero runtime dependencies**, Shadow DOM, and a 10 KB min+gzip budget enforced in CI.
 - **Accessible**: keyboard navigation, focus management, WCAG 2.1 AA contrast in light and dark themes, checked with axe.
-- **Private by design**: no backend, no telemetry; read state lives in the user's `localStorage`.
 - **`llms.txt` and `llms-full.txt`** so AI assistants know what changed.
 - **Themeable** with CSS custom properties, `::part()` and your own trigger.
 
 ## Quick start
+
+You need Node.js 24 or newer for the CLI. The widget runs in any [modern browser](#browser-support).
 
 **1. Create the config and a first entry**
 
@@ -68,8 +71,9 @@ npx @shipdot/cli init
 
 **2. Write entries and build the feed**
 
+Each update is a Markdown file in `.shipdot/entries/`, for example `.shipdot/entries/2026-10-14-export-excel.md`:
+
 ```md
-<!-- .shipdot/entries/2026-10-14-export-excel.md -->
 ---
 date: 2026-10-14
 type: new             # new | improved | fixed
@@ -86,7 +90,7 @@ npx @shipdot/cli build   # → public/shipdot.json, public/llms.txt, public/llms
 **3. Add the widget**
 
 ```html
-<script type="module" src="https://unpkg.com/shipdot"></script>
+<script type="module" src="https://unpkg.com/shipdot@0.1"></script>
 <ship-dot src="/shipdot.json"></ship-dot>
 ```
 
@@ -111,8 +115,8 @@ HTML is sanitized once, at build time, with a strict allowlist, so the widget st
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/panel-dark.png">
-    <img src=".github/assets/panel-light.png" alt="The What's new panel open in a demo analytics app, listing three updates tagged New, Improved and Fixed" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/panel-dark.webp">
+    <img src=".github/assets/panel-light.webp" alt="The What's new panel open in a demo analytics app, listing three updates tagged New, Improved and Fixed" width="100%">
   </picture>
 </p>
 
@@ -182,7 +186,18 @@ jobs:
           # llm-api-key: ${{ secrets.SHIPDOT_LLM_API_KEY }}
 ```
 
-Inputs: `command` (`draft` | `build`), `github-token`, `base-branch`, `llm-provider`, `llm-api-key`, `llm-model`, `llm-base-url`, `working-directory`. Outputs: `entries`, `pull-request-url`, `pull-request-number`. Enable **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests** so it can open the draft PR. More in the [Action guide](https://pipe1os.github.io/shipdot/guides/github-action/).
+> [!IMPORTANT]
+> Enable **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests** so the Action can open the draft pull request.
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `command` | `draft` | `draft` opens a pull request with new drafts; `build` writes `shipdot.json` and `llms.txt`. |
+| `github-token` | `${{ github.token }}` | Token for the GitHub API. |
+| `base-branch` | config, then repo default | Branch the pull requests are merged into. |
+| `llm-provider`, `llm-api-key`, `llm-model`, `llm-base-url` | — | Optional [LLM mode](#llm-mode-and-privacy). Pass the key from a secret; it is masked in logs. |
+| `working-directory` | `.` | Folder with `shipdot.config.json`. |
+
+Outputs: `entries`, `pull-request-url`, `pull-request-number`. More in the [Action guide](https://pipe1os.github.io/shipdot/guides/github-action/).
 
 ## Writing notes in pull requests
 
@@ -192,7 +207,7 @@ Add a `### shipdot` section to your PR template and the note is written by the p
 ### shipdot
 title: Export to Excel
 type: new
-target: #btn-export
+target: "#btn-export"
 
 You can now export any report to Excel with one click.
 ```
