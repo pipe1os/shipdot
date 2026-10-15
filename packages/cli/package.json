@@ -1,6 +1,6 @@
 {
   "name": "@shipdot/cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Turn merged pull requests into reviewed in-app release notes. Builds shipdot.json and llms.txt from Markdown entries.",
   "keywords": [
     "shipdot",
