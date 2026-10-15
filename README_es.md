@@ -214,7 +214,7 @@ target: "#btn-export"
 You can now export any report to Excel with one click.
 ```
 
-Escribe `skip` para excluir un PR. Los PRs con la etiqueta `skip-shipdot`, los PRs de bots y los PRs de `chore`/`ci`/`test`/`docs`/`refactor` se omiten automáticamente.
+La nota termina en el siguiente encabezado o en una línea horizontal (`---`), así que deja la sección antes de cualquier firma que las herramientas agreguen a la descripción. Escribe `skip` para excluir un PR. Los PRs con la etiqueta `skip-shipdot`, los PRs de bots y los PRs de `chore`/`ci`/`test`/`docs`/`refactor` se omiten automáticamente.
 
 ## Modo LLM y privacidad
 

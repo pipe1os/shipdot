@@ -118,7 +118,7 @@ describe('draft', () => {
       title: string
       body: string
     }
-    expect(pull.title).toBe('shipdot: 1 draft release note for review')
+    expect(pull.title).toBe('docs(shipdot): draft 1 in-app release note')
     expect(await outputs()).toContain('https://github.com/acme/app/pull/9')
     // The API key never reaches GitHub, and the token only travels in the Authorization header.
     expect(JSON.stringify(calls)).not.toContain('sk-ant-secret')

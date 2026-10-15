@@ -43,6 +43,8 @@ target: "#btn-export"
 You can now export any report to Excel with one click.
 ```
 
+The note ends at the next heading of the same or a higher level (like `## Checklist`) or at a horizontal rule (`---`). Keep the section above anything appended to the end of the description, such as the footer some tools sign pull requests with, or it becomes part of the note.
+
 Writing `skip` as the only content of the section opts the PR out. shipdot's own [pull request template](https://github.com/pipe1os/shipdot/blob/main/.github/PULL_REQUEST_TEMPLATE.md) includes this section; copy it into yours.
 
 ## LLM mode (bring your own key)

@@ -1,0 +1,53 @@
+---
+// Starlight renders Search once per page, in the part of the header that stays visible on phones
+// (SocialIcons sits in a group hidden below 50rem and is repeated in the mobile menu), so the
+// "What's new" bell lives here: one instance, next to the search button, on every page.
+import Default from '@astrojs/starlight/components/Search.astro'
+
+const feed = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/shipdot.json`
+---
+
+<div class="search-bar">
+  <Default {...Astro.props} />
+  <ship-dot src={feed} storage-key="docs" first-visit="show-latest" class="docs-widget"></ship-dot>
+</div>
+
+<script>
+  import 'shipdot'
+
+  // Follow Starlight's theme toggle instead of the OS preference.
+  const sync = () => {
+    const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
+    for (const widget of document.querySelectorAll('ship-dot.docs-widget'))
+      widget.setAttribute('theme', theme)
+  }
+  sync()
+  new MutationObserver(sync).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
+</script>
+
+<style>
+  .search-bar {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  ship-dot {
+    color: var(--sl-color-text-accent);
+    /* As tall as the search button on phones. */
+    --shipdot-trigger-size: 2.5rem;
+  }
+  @media (min-width: 50rem) {
+    .search-bar {
+      gap: 1rem;
+    }
+    ship-dot {
+      --shipdot-trigger-size: 36px;
+      /* End of the search column, 1rem from the social icons. */
+      margin-inline: auto calc(1rem - var(--sl-nav-gap));
+    }
+  }
+</style>

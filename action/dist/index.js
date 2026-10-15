@@ -45090,10 +45090,13 @@ async function buildProject(project, options) {
 
 const DRAFT_BRANCH_PREFIX = "shipdot/draft-";
 const unquote = (value) => value.trim().replace(/^(["'`])(.*)\1$/, "$2").trim();
+const THEMATIC_BREAK_RE = /^ {0,3}(?:(?:-[ \t]*){3,}|(?:\*[ \t]*){3,}|(?:_[ \t]*){3,})$/;
 /**
 * Reads the `### shipdot` section of a pull request body. Leading `title:`, `type:`,
-* `target:` and `link:` lines are metadata; the rest is the note. A section that says
-* `skip` opts the pull request out. Returns undefined when there is no (filled) section.
+* `target:` and `link:` lines are metadata; the rest is the note. The section ends at the
+* next heading of the same or a higher level, or at a horizontal rule (`---`), where tools
+* usually append their footers. A section that says `skip` opts the pull request out.
+* Returns undefined when there is no (filled) section.
 */
 function parseShipdotSection(body) {
 	if (!body) return void 0;
@@ -45102,7 +45105,9 @@ function parseShipdotSection(body) {
 	if (!heading) return void 0;
 	const rest = text.slice(heading.index + heading[0].length);
 	const next = new RegExp(`^#{1,${heading[1]?.length}}[ \\t]`, "m").exec(rest);
-	const lines = (next ? rest.slice(0, next.index) : rest).trim().split("\n");
+	const all = (next ? rest.slice(0, next.index) : rest).split("\n");
+	const rule = all.findIndex((line) => THEMATIC_BREAK_RE.test(line));
+	const lines = (rule === -1 ? all : all.slice(0, rule)).join("\n").trim().split("\n");
 	if (!lines[0]?.trim()) return void 0;
 	if (/^skip\.?$/i.test(lines[0].trim())) return {
 		skip: true,
@@ -45593,7 +45598,7 @@ async function run(options = {}) {
 				path: prefix ? `${prefix}/${f.path}` : f.path,
 				content: f.content
 			})),
-			title: `shipdot: ${n} draft release note${n === 1 ? "" : "s"} for review`,
+			title: `docs(shipdot): draft ${n} in-app release note${n === 1 ? "" : "s"}`,
 			body: pullBody(result)
 		};
 		let created;
