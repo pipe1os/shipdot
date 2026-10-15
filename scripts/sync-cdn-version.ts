@@ -18,7 +18,9 @@ const files = execFileSync('git', ['ls-files', '*.md', '*.mdx'], {
   encoding: 'utf8',
 })
   .split('\n')
-  .filter((file) => file && !file.endsWith('CHANGELOG.md'))
+  // Release notes keep the URL they shipped with. Changesets are also already deleted by
+  // `changeset version` at this point, but still listed because `git ls-files` reads the index.
+  .filter((file) => file && !file.endsWith('CHANGELOG.md') && !file.startsWith('.changeset/'))
 
 for (const file of files) {
   const path = new URL(file, root)
