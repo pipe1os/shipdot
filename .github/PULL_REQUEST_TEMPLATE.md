@@ -17,7 +17,7 @@ Write one to three sentences for users, not developers. Optional first lines:
 
 title: Export to Excel
 type: new
-target: #btn-export
+target: "#btn-export"
 
 `type` is new, improved or fixed. `target` is the CSS selector of the element that gets a hotspot.
 Write "skip" if users will not notice this change.

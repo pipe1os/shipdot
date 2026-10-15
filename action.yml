@@ -1,4 +1,6 @@
-name: shipdot
+# The GitHub Marketplace listing name. It must be unique across Marketplace actions, users and
+# organizations, so it cannot be just "shipdot". Workflows reference the repo: pipe1os/shipdot@v0.
+name: shipdot in-app release notes
 description: Draft in-app release notes from merged pull requests, or build shipdot.json and llms.txt.
 author: pipe1os
 branding:

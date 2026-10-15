@@ -1,6 +1,7 @@
 import { access, mkdir, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { CONFIG_FILE, CONFIG_SCHEMA_URL, DEFAULT_CONFIG, isLocale } from '@shipdot/core'
+import pkg from '../package.json' with { type: 'json' }
 
 export interface InitOptions {
   cwd: string
@@ -28,7 +29,16 @@ async function detectOutDir(cwd: string): Promise<string> {
   return DEFAULT_CONFIG.outDir
 }
 
-export const WIDGET_SNIPPET = `<script type="module" src="https://unpkg.com/shipdot"></script>
+/**
+ * Version range for CDN URLs. The widget shares its version with the CLI. In `0.x` a minor
+ * release may break, so pin `major.minor`; from 1.0 on, the major is enough.
+ */
+function cdnRange(version: string): string {
+  const [major = '0', minor = '0'] = version.split('.')
+  return major === '0' ? `${major}.${minor}` : major
+}
+
+export const WIDGET_SNIPPET: string = `<script type="module" src="https://unpkg.com/shipdot@${cdnRange(pkg.version)}"></script>
 <ship-dot src="/shipdot.json"></ship-dot>`
 
 export const WORKFLOW_SNIPPET = `# .github/workflows/shipdot.yml
@@ -38,11 +48,13 @@ on:
   schedule:
     - cron: '0 9 * * 1' # Mondays 09:00 UTC
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 jobs:
   draft:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
       - uses: pipe1os/shipdot@v0

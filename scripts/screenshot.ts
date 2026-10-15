@@ -1,8 +1,9 @@
 // Renders the README images with Playwright: the real <ship-dot> build on a showcase stage
 // (scripts/showcase/stage.html), fed by the entries in scripts/showcase/entries compiled
-// exactly like `shipdot build` does.
+// exactly like `shipdot build` does. Images are WebP, encoded by the same browser: about a
+// quarter of the PNG size with no visible difference.
 // Usage: pnpm build:packages && node scripts/screenshot.ts
-import { readdir, readFile } from 'node:fs/promises'
+import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { chromium, type Page } from '@playwright/test'
 import { compile } from '../packages/core/dist/compile.js'
 
@@ -71,8 +72,21 @@ for (const theme of ['light', 'dark'] as const) {
       }
     })
     await page.waitForTimeout(300)
-    const path = `.github/assets/${scene}-${theme}.png`
-    await page.screenshot({ path, omitBackground: true })
+    const png = await page.screenshot({ omitBackground: true })
+    const webp = await page.evaluate(async (base64) => {
+      const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0))
+      const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }))
+      const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+      canvas.getContext('2d')?.drawImage(bitmap, 0, 0)
+      const blob = await canvas.convertToBlob({ type: 'image/webp', quality: 0.95 })
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '')
+        reader.readAsDataURL(blob)
+      })
+    }, png.toString('base64'))
+    const path = `.github/assets/${scene}-${theme}.webp`
+    await writeFile(path, Buffer.from(webp, 'base64'))
     written.push(path)
     await page.close()
   }
