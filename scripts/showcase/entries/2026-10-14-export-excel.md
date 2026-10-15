@@ -1,8 +1,8 @@
 ---
-date: 2026-10-14
-type: new
 title: Export to Excel
 target: "#btn-export"
+type: new
+date: 2026-10-14
 link: https://acme.example/docs/export
 ---
 Download any report as an **Excel** file

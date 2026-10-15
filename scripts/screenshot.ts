@@ -8,6 +8,7 @@ import { chromium, type Page } from '@playwright/test'
 import { compile } from '../packages/core/dist/compile.js'
 
 const dir = (path: string) => new URL(path, import.meta.url)
+const fontFile = (path: string) => dir(`../node_modules/@fontsource-variable/${path}`)
 const ENTRY = '2026-10-14-export-excel.md'
 const ORIGIN = 'http://showcase.test'
 
@@ -28,6 +29,15 @@ const files: Record<string, { body: string | Buffer; type: string }> = {
     type: 'text/javascript',
   },
   '/shipdot.json': { body: JSON.stringify(result.feed), type: 'application/json' },
+  // Fonts come from devDependencies so the images look the same on every machine.
+  '/fonts/inter.woff2': {
+    body: await readFile(fontFile('inter/files/inter-latin-opsz-normal.woff2')),
+    type: 'font/woff2',
+  },
+  '/fonts/jetbrains-mono.woff2': {
+    body: await readFile(fontFile('jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2')),
+    type: 'font/woff2',
+  },
 }
 for (const file of sources)
   files[`/entries/${file.path}`] = { body: file.content, type: 'text/markdown' }
