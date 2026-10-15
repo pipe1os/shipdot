@@ -21,7 +21,7 @@ Requires Node.js 24 or newer. Output is colored when the terminal supports it an
 
 ## `shipdot init`
 
-Creates `shipdot.config.json` and `.shipdot/entries/<today>-welcome.md`, then prints the widget and workflow snippets. Existing files are never overwritten.
+Creates `shipdot.config.json` and `.shipdot/entries/<today>-welcome.md`, then prints the widget and workflow snippets. The widget snippet is `import 'shipdot'` when your `package.json` already depends on `shipdot`, and the CDN `<script>` otherwise. Existing files are never overwritten.
 
 | Option | Description |
 | --- | --- |

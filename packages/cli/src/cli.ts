@@ -6,7 +6,7 @@ import { CONFIG_FILE, type Diagnostic, formatDiagnostic, type LlmProvider } from
 import pkg from '../package.json' with { type: 'json' }
 import { draftEntries } from './draft'
 import { GitHub, parseRepo } from './github'
-import { initProject, WIDGET_SNIPPET, WORKFLOW_SNIPPET } from './init'
+import { initProject, WIDGET_IMPORT_SNIPPET, WIDGET_SNIPPET, WORKFLOW_SNIPPET } from './init'
 import type { LlmOptions } from './llm'
 import { buildProject, loadProject } from './project'
 
@@ -182,7 +182,13 @@ ${color('bold', 'Next steps')}
   2. Run ${color('cyan', 'shipdot build')} to write ${result.outDir}/shipdot.json
   3. Add the widget to your app:
 
-${WIDGET_SNIPPET}
+${
+  result.widgetInstalled
+    ? WIDGET_IMPORT_SNIPPET
+    : `${WIDGET_SNIPPET}
+
+  Or ${color('cyan', 'npm install shipdot')} and ${color('cyan', "import 'shipdot'")} once on the client.`
+}
 
   Optional: draft entries from merged pull requests every week:
 

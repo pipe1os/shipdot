@@ -146,7 +146,8 @@ export async function run(options: RunOptions = {}): Promise<void> {
         path: prefix ? `${prefix}/${f.path}` : f.path,
         content: f.content,
       })),
-      title: `shipdot: ${n} draft release note${n === 1 ? '' : 's'} for review`,
+      // A Conventional Commits title, so the default squash commit follows the convention too.
+      title: `docs(shipdot): draft ${n} in-app release note${n === 1 ? '' : 's'}`,
       body: pullBody(result),
     }
     let created: { number: number; html_url: string }
