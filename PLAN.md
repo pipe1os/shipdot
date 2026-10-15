@@ -120,6 +120,8 @@ Target: **MVP v0.1.0** (not published).
 - [x] `pnpm -r pack --dry-run`: `exports`, types, `files`, `license`, `repository`, `README` correct
 - [x] Definition of Done (below) verified from a clean clone
 
+**Notes**: the README images are rendered from a dedicated stage (`scripts/showcase/stage.html`) instead of the docs playground. The playground crop leaked page content and could not frame the hotspot and the entry that produces it together. The widget, its hotspots and its panel in the images are still the real build, fed by entries compiled with `@shipdot/core/compile`.
+
 ## Definition of Done (MVP)
 
 - [x] `pnpm install && pnpm build && pnpm test && pnpm test:e2e && pnpm lint && pnpm typecheck` green from a clean clone
@@ -176,4 +178,5 @@ Target: **MVP v0.1.0** (not published).
 - 2026-10-14 — Phase 10: README with Playwright-generated screenshots, `README_es.md`, repo `llms.txt`, package READMEs and licenses, Changesets config and initial v0.1.0 changeset (not published). Tarballs installed in a clean project: `init`, `build`, SSR import and `@shipdot/core/compile` work.
 - 2026-10-14 — Definition of Done verified from a clean clone (install, build, 115 unit tests, 19 e2e tests with axe, lint, typecheck, size 6.47 KB, Action bundle up to date). `shipdot draft --dry-run` drafted PR #2 of this repository in template mode from its `### shipdot` section. MVP complete.
 - 2026-10-14 — v0.1.0 follow-up: the version bump left `action/dist` stale (the bundle inlines the CLI version), which failed CI on `main`. Bundle rebuilt, and `pnpm version-packages` now rebuilds the Action bundle so release commits and "Version packages" PRs include it.
+- 2026-10-15 — README images redesigned: a dedicated showcase stage (`scripts/showcase/`) renders the real widget build and a feed compiled from real entries, in light and dark variants (`<picture>`). The hero pairs the Markdown entry with the hotspot it produces; the panel image now illustrates the Widget section. `scripts/screenshot.ts` no longer needs the docs build.
 - 2026-10-15 — Docs: "Copy page" menu next to the title of every Markdown docs page (copy the page as Markdown for LLMs, or view it as plain text). Each page is also served at `<page>.md` by an Astro endpoint, with links made absolute; the MDX pages (home, playground) are left out.
