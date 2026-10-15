@@ -17321,7 +17321,7 @@ function resolveConfig(input) {
 	};
 }
 
-var version = "0.1.1";
+var version = "0.1.2";
 
 const { defineProperty } = Object;
 const env = typeof self === "object" ? self : globalThis;

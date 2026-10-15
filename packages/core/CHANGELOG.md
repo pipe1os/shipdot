@@ -1,5 +1,11 @@
 # @shipdot/core
 
+## 0.1.2
+
+### Patch Changes
+
+- [#26](https://github.com/pipe1os/shipdot/pull/26) [`b3c79e6`](https://github.com/pipe1os/shipdot/commit/b3c79e6027da3e1a88e7bb15fa1087a523460b5d) Thanks [@pipe1os](https://github.com/pipe1os)! - `stripHtmlComments` finds comments with a linear-time scanner instead of the Markdown parser, which took quadratic time on deeply nested lists and block quotes: a 65 KB pull request body could stall `shipdot draft` and the GitHub Action for minutes. Comments are still removed the way GitHub renders them, and `<!--` in code spans and code blocks is kept.
+
 ## 0.1.1
 
 ### Patch Changes
