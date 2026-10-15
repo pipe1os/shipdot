@@ -75,6 +75,12 @@ describe('shipdot init', () => {
     const init = await cli(['init', '--locales', 'en,es'], dir)
     expect(init.code).toBe(0)
     expect(init.stdout).toContain('<ship-dot src="/shipdot.json"></ship-dot>')
+    // The snippet pins the widget release that matches this CLI (`0.x` → `major.minor`).
+    const widget = JSON.parse(
+      await readFile(new URL('../../shipdot/package.json', import.meta.url), 'utf8'),
+    )
+    const range = widget.version.split('.').slice(0, 2).join('.')
+    expect(init.stdout).toContain(`src="https://unpkg.com/shipdot@${range}"`)
     const config = JSON.parse(await readFile(join(dir, 'shipdot.config.json'), 'utf8'))
     expect(config).toMatchObject({ outDir: 'public', defaultLocale: 'en', locales: ['en', 'es'] })
 

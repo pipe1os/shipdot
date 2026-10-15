@@ -22,7 +22,7 @@
     "docs": "pnpm --filter @shipdot/docs dev",
     "docs:build": "pnpm --filter @shipdot/docs build",
     "changeset": "changeset",
-    "version-packages": "changeset version && pnpm install --lockfile-only && pnpm --filter \"@shipdot/action...\" build",
+    "version-packages": "changeset version && node scripts/sync-cdn-version.ts && pnpm install --lockfile-only && pnpm --filter \"@shipdot/action...\" build",
     "release": "pnpm build:packages && changeset publish"
   },
   "devDependencies": {
