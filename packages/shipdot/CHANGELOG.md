@@ -1,5 +1,11 @@
 # shipdot
 
+## 0.1.1
+
+### Patch Changes
+
+- [#10](https://github.com/pipe1os/shipdot/pull/10) [`d48d06b`](https://github.com/pipe1os/shipdot/commit/d48d06be935c5db5233b0f409f27a999840ffeeb) Thanks [@pipe1os](https://github.com/pipe1os)! - Builds are reproducible across operating systems: the GitHub Action bundle is byte-identical on Linux, macOS and Windows, `pnpm build` no longer leaves the working tree dirty, and releases are published from CI with npm trusted publishing.
+
 ## 0.1.0
 
 ### Minor Changes
