@@ -82,9 +82,17 @@ Even large ones.
   it('handles adversarial bodies', () => {
     const started = performance.now()
     parseShipdotSection(`### shipdot${' '.repeat(50_000)}x`)
-    // Takes seconds with a polynomial regex; the bound is loose so slow runners do not flake.
-    expect(performance.now() - started).toBeLessThan(1000)
     expect(parseShipdotSection(`${'> '.repeat(30_000)}<!-- x -->`)).toBeUndefined()
+    // Deeply nested lists and block quotes take a Markdown parser quadratic time.
+    const list = `${'- '.repeat(30_000)}x`
+    expect(parseShipdotSection(`### shipdot\nNote.\n${list}<!-- x -->`)?.body).toBe(
+      `Note.\n${list}`,
+    )
+    const quote = `${'> '.repeat(15_000)}a\n${'b\n'.repeat(15_000)}`
+    expect(parseShipdotSection(`### shipdot\n${quote}<!-- x -->`)?.body).toBe(quote.trim())
+    // Takes seconds with a polynomial regex or a parser; the bound is loose so slow runners do
+    // not flake.
+    expect(performance.now() - started).toBeLessThan(1000)
   })
 })
 
