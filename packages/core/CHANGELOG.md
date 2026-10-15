@@ -1,5 +1,11 @@
 # @shipdot/core
 
+## 0.1.1
+
+### Patch Changes
+
+- [#11](https://github.com/pipe1os/shipdot/pull/11) [`7b38259`](https://github.com/pipe1os/shipdot/commit/7b38259be40c29ea9c103b0fee5f3ead516335ea) Thanks [@pipe1os](https://github.com/pipe1os)! - Harden parsing of untrusted text: HTML comments are removed with the Markdown parser instead of a regular expression (exported as `stripHtmlComments` from `@shipdot/core/compile`), so `<!--` written in code no longer cuts off `llms.txt` or a pull request's `### shipdot` section, and `shipdot draft` parses pull request titles and bodies without regular expressions that can backtrack polynomially.
+
 ## 0.1.0
 
 ### Minor Changes

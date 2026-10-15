@@ -1,6 +1,6 @@
 {
   "name": "@shipdot/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Feed schema, types, validation and the isomorphic compile pipeline behind shipdot.",
   "keywords": [
     "shipdot",
