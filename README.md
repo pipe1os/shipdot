@@ -96,6 +96,8 @@ npx @shipdot/cli build   # → public/shipdot.json, public/llms.txt, public/llms
 
 Or `npm install shipdot` and `import 'shipdot'` once on the client. Try it without installing anything in the **[playground](https://pipe1os.github.io/shipdot/playground/)**.
 
+The bell starts without a badge: on a first visit, existing entries count as read. To see the badge and hotspots, add a new entry and run `build` again, or set `first-visit="show-latest"` while you try it out.
+
 ## How it works
 
 ```mermaid

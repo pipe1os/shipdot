@@ -96,6 +96,8 @@ npx @shipdot/cli build   # → public/shipdot.json, public/llms.txt, public/llms
 
 O bien, `npm install shipdot` y `import 'shipdot'` una sola vez en el cliente. Pruébalo sin instalar nada en el **[playground](https://pipe1os.github.io/shipdot/playground/)**.
 
+La campana parte sin contador: en una primera visita, las entradas existentes cuentan como leídas. Para ver el contador y los hotspots, agrega una entrada nueva y vuelve a correr `build`, o usa `first-visit="show-latest"` mientras lo pruebas.
+
 ## Cómo funciona
 
 ```mermaid
