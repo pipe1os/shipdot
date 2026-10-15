@@ -438,7 +438,26 @@ const llmsHeader = (options: CompileOptions): string => {
   return `# ${title}\n\n> ${summary.replace(/\s+/g, ' ')}\n`
 }
 
-const stripComments = (markdown: string) => markdown.replace(/<!--[\s\S]*?-->/g, '').trim()
+/**
+ * Removes HTML comments in one linear pass. An unterminated `<!--` hides the rest of the
+ * text, as in HTML. The result never contains `<!--`, not even one formed by removing a
+ * comment (`<!<!-- x -->--`), which a single regex replace would leave behind.
+ */
+export function stripHtmlComments(text: string): string {
+  const out: string[] = []
+  for (let i = 0; i < text.length; ) {
+    out.push(text.charAt(i++))
+    if (out.length >= 4 && out.slice(-4).join('') === '<!--') {
+      out.length -= 4
+      const end = text.indexOf('-->', i)
+      if (end === -1) break
+      i = end + 3
+    }
+  }
+  return out.join('')
+}
+
+const stripComments = (markdown: string) => stripHtmlComments(markdown).trim()
 
 function toLlmsTxt(compiled: readonly Compiled[], options: CompileOptions): string {
   const lines = compiled.map(({ entry, markdown }) => {

@@ -44698,7 +44698,25 @@ const TYPE_LABEL = {
 const llmsHeader = (options) => {
 	return `# ${options.name ? `${options.name}: what's new` : "What's new"}\n\n> ${(options.description ?? `Product updates${options.name ? ` for ${options.name}` : ""}, newest first.`).replace(/\s+/g, " ")}\n`;
 };
-const stripComments = (markdown) => markdown.replace(/<!--[\s\S]*?-->/g, "").trim();
+/**
+* Removes HTML comments in one linear pass. An unterminated `<!--` hides the rest of the
+* text, as in HTML. The result never contains `<!--`, not even one formed by removing a
+* comment (`<!<!-- x -->--`), which a single regex replace would leave behind.
+*/
+function stripHtmlComments(text) {
+	const out = [];
+	for (let i = 0; i < text.length;) {
+		out.push(text.charAt(i++));
+		if (out.length >= 4 && out.slice(-4).join("") === "<!--") {
+			out.length -= 4;
+			const end = text.indexOf("-->", i);
+			if (end === -1) break;
+			i = end + 3;
+		}
+	}
+	return out.join("");
+}
+const stripComments = (markdown) => stripHtmlComments(markdown).trim();
 function toLlmsTxt(compiled, options) {
 	const lines = compiled.map(({ entry, markdown }) => {
 		const name = entry.link ? `[${entry.title}](${entry.link})` : entry.title;
@@ -44985,8 +45003,8 @@ const unquote = (value) => value.trim().replace(/^(["'`])(.*)\1$/, "$2").trim();
 */
 function parseShipdotSection(body) {
 	if (!body) return void 0;
-	const text = body.replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?-->/g, "");
-	const heading = /^(#{1,6})[ \t]+shipdot[ \t]*#*[ \t]*$/im.exec(text);
+	const text = stripHtmlComments(body.replace(/\r\n?/g, "\n"));
+	const heading = /^(#{1,6})[ \t]+shipdot[ \t#]*$/im.exec(text);
 	if (!heading) return void 0;
 	const rest = text.slice(heading.index + heading[0].length);
 	const next = new RegExp(`^#{1,${heading[1]?.length}}[ \\t]`, "m").exec(rest);
@@ -45014,14 +45032,14 @@ function parseShipdotSection(body) {
 	section.body = lines.slice(i).join("\n").trim();
 	return section;
 }
-const CONVENTIONAL_RE = /^(\w+)(?:\([^)]*\))?!?:\s*(.+)$/;
+const CONVENTIONAL_RE = /^(\w+)(?:\([^)]*\))?!?:\s*(\S.*)$/;
 /** The conventional commit type of a title (`feat(ui): x` → `feat`), lowercased. */
 function conventionalType(title) {
 	return CONVENTIONAL_RE.exec(title.trim())?.[1]?.toLowerCase();
 }
 /** `feat(export): add excel export (#12)` → `Add excel export` */
 function titleFromPr(title) {
-	const clean = (CONVENTIONAL_RE.exec(title.trim())?.[2] ?? title).replace(/\s*\(#\d+\)\s*$/, "").trim().replace(/\.$/, "");
+	const clean = (CONVENTIONAL_RE.exec(title.trim())?.[2] ?? title).trim().replace(/\(#\d+\)$/, "").trim().replace(/\.$/, "");
 	return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 function typeFromPr(title) {

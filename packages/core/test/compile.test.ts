@@ -1,5 +1,11 @@
 import { validateFeed } from '@shipdot/core'
-import { compile, parseEntryFile, type SourceFile, serializeEntry } from '@shipdot/core/compile'
+import {
+  compile,
+  parseEntryFile,
+  type SourceFile,
+  serializeEntry,
+  stripHtmlComments,
+} from '@shipdot/core/compile'
 import { describe, expect, it } from 'vitest'
 
 const options = { defaultLocale: 'en', locales: ['en', 'es'], generatedAt: '2026-10-14T21:00:00Z' }
@@ -285,5 +291,21 @@ describe('serializeEntry', () => {
       title: 'Export: "Excel"',
       target: '#btn',
     })
+  })
+})
+
+describe('stripHtmlComments', () => {
+  it('removes comments, including unterminated ones', () => {
+    expect(stripHtmlComments('a<!-- x -->b<!-- y -->c')).toBe('abc')
+    expect(stripHtmlComments('a\n<!--\nmulti\nline\n-->\nb')).toBe('a\n\nb')
+    expect(stripHtmlComments('a <!-- never closed')).toBe('a ')
+    expect(stripHtmlComments('no comments, a < b -> c')).toBe('no comments, a < b -> c')
+  })
+
+  it('never leaves a comment opener formed by removing another comment', () => {
+    expect(stripHtmlComments('a<!<!-- x -->-- y -->b')).toBe('ab')
+    expect(stripHtmlComments('<<!-- -->!<!-- -->-<!-- -->-<script>')).toBe('')
+    const nested = `${'<!'.repeat(5000)}${'<!-- -->--'.repeat(5000)}`
+    expect(stripHtmlComments(nested)).not.toContain('<!--')
   })
 })

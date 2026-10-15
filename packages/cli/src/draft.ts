@@ -1,6 +1,6 @@
 import { relative, resolve, sep } from 'node:path'
 import { ENTRY_TYPES, type EntryType } from '@shipdot/core'
-import { parseEntryFile, serializeEntry } from '@shipdot/core/compile'
+import { parseEntryFile, serializeEntry, stripHtmlComments } from '@shipdot/core/compile'
 import type { GitHub, PullRequest } from './github'
 import { type LlmOptions, rewriteWithLlm } from './llm'
 import { type Project, readEntries } from './project'
@@ -29,8 +29,10 @@ const unquote = (value: string) =>
  */
 export function parseShipdotSection(body: string | null | undefined): ShipdotSection | undefined {
   if (!body) return undefined
-  const text = body.replace(/\r\n?/g, '\n').replace(/<!--[\s\S]*?-->/g, '')
-  const heading = /^(#{1,6})[ \t]+shipdot[ \t]*#*[ \t]*$/im.exec(text)
+  // PR bodies are untrusted: these patterns must not backtrack polynomially (no two adjacent
+  // quantifiers that can match the same characters).
+  const text = stripHtmlComments(body.replace(/\r\n?/g, '\n'))
+  const heading = /^(#{1,6})[ \t]+shipdot[ \t#]*$/im.exec(text)
   if (!heading) return undefined
   const rest = text.slice(heading.index + heading[0].length)
   const next = new RegExp(`^#{1,${heading[1]?.length}}[ \\t]`, 'm').exec(rest)
@@ -55,7 +57,9 @@ export function parseShipdotSection(body: string | null | undefined): ShipdotSec
   return section
 }
 
-const CONVENTIONAL_RE = /^(\w+)(?:\([^)]*\))?!?:\s*(.+)$/
+// `\s*(\S.*)` instead of `\s*(.+)`: the subject must start where the whitespace ends, so a
+// title with many spaces cannot backtrack polynomially.
+const CONVENTIONAL_RE = /^(\w+)(?:\([^)]*\))?!?:\s*(\S.*)$/
 
 /** The conventional commit type of a title (`feat(ui): x` → `feat`), lowercased. */
 export function conventionalType(title: string): string | undefined {
@@ -66,7 +70,8 @@ export function conventionalType(title: string): string | undefined {
 export function titleFromPr(title: string): string {
   const subject = CONVENTIONAL_RE.exec(title.trim())?.[2] ?? title
   const clean = subject
-    .replace(/\s*\(#\d+\)\s*$/, '')
+    .trim()
+    .replace(/\(#\d+\)$/, '')
     .trim()
     .replace(/\.$/, '')
   return clean.charAt(0).toUpperCase() + clean.slice(1)

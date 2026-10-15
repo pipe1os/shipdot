@@ -67,6 +67,18 @@ Even large ones.
       body: 'Body',
     })
   })
+
+  it('drops comments that would re-form after removing a nested one', () => {
+    const body = '### shipdot\nVisible <!<!-- x -->-- hidden -->text'
+    expect(parseShipdotSection(body)?.body).toBe('Visible text')
+  })
+
+  it('handles adversarial bodies in linear time', () => {
+    const started = performance.now()
+    parseShipdotSection(`### shipdot${' '.repeat(50_000)}x`)
+    parseShipdotSection(`${'<!'.repeat(20_000)}${'<!-- -->--'.repeat(20_000)}`)
+    expect(performance.now() - started).toBeLessThan(500)
+  })
 })
 
 describe('pull request titles', () => {
@@ -80,6 +92,15 @@ describe('pull request titles', () => {
     expect(titleFromPr('feat(export): add excel export (#12)')).toBe('Add excel export')
     expect(titleFromPr('fix: handle empty reports.')).toBe('Handle empty reports')
     expect(titleFromPr('Improve onboarding')).toBe('Improve onboarding')
+    expect(titleFromPr('fix:   spaced out   (#7)  ')).toBe('Spaced out')
+  })
+
+  it('handles adversarial titles in linear time', () => {
+    const started = performance.now()
+    conventionalType(`a:${' '.repeat(50_000)}\n`)
+    titleFromPr(`a:${' '.repeat(50_000)}\n`)
+    titleFromPr(`x${' '.repeat(50_000)}y`)
+    expect(performance.now() - started).toBeLessThan(500)
   })
 
   it('maps types', () => {
