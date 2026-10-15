@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>shipdot showcase</title>
+    <!--
+      The stage for the README images (rendered by scripts/screenshot.ts). Everything around
+      <ship-dot> is a fake app; the widget, its hotspots and its panel are the real build.
+      Query string: ?theme=light|dark&scene=hero|panel&entry=<file in entries/>
+    -->
+    <style>
+      :root {
+        --stage: #f3f4fa;
+        --glow-a: rgb(99 102 241 / 0.3);
+        --glow-b: rgb(236 72 153 / 0.2);
+        --glow-c: rgb(14 165 233 / 0.18);
+        --dots: rgb(30 41 59 / 0.11);
+        --stage-edge: rgb(15 23 42 / 0.06);
+
+        --bg: #ffffff;
+        --sunk: #f7f8fa;
+        --chrome: #f5f6f8;
+        --fg: #0f172a;
+        --muted: #5b6478;
+        --soft: #8a93a6;
+        --line: #e6e8ee;
+        --hover: rgb(15 23 42 / 0.05);
+        --brand: #4f46e5;
+        --up: #047857;
+        --up-bg: #e7f8f0;
+        --grid: #eef0f4;
+        --prev: #c3c8d4;
+        --window-shadow: 0 0 0 1px rgb(15 23 42 / 0.07), 0 2px 4px rgb(15 23 42 / 0.04),
+          0 12px 24px -8px rgb(15 23 42 / 0.1), 0 48px 96px -32px rgb(30 27 75 / 0.38);
+        --btn-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+
+        --code-bg: #0e1124;
+        --code-edge: rgb(15 23 42 / 0.5);
+        --code-shadow: 0 32px 64px -24px rgb(15 23 42 / 0.55), 0 12px 24px -12px rgb(30 27 75 / 0.3);
+
+        color-scheme: light;
+      }
+
+      :root[data-theme='dark'] {
+        --stage: #080a13;
+        --glow-a: rgb(99 102 241 / 0.36);
+        --glow-b: rgb(236 72 153 / 0.2);
+        --glow-c: rgb(14 165 233 / 0.14);
+        --dots: rgb(226 232 240 / 0.08);
+        --stage-edge: rgb(255 255 255 / 0.07);
+
+        --bg: #0d0f17;
+        --sunk: #11131d;
+        --chrome: #10121b;
+        --fg: #eceef5;
+        --muted: #9096ab;
+        --soft: #646b82;
+        --line: #212534;
+        --hover: rgb(255 255 255 / 0.06);
+        --brand: #818cf8;
+        --up: #4ade80;
+        --up-bg: rgb(74 222 128 / 0.12);
+        --grid: #1a1d2a;
+        --prev: #3a3f55;
+        --window-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 2px 4px rgb(0 0 0 / 0.3),
+          0 48px 96px -32px rgb(0 0 0 / 0.9);
+        --btn-shadow: none;
+
+        --code-bg: #0f1226;
+        --code-edge: rgb(255 255 255 / 0.1);
+        --code-shadow: 0 32px 64px -24px rgb(0 0 0 / 0.9);
+
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        background: transparent;
+      }
+
+      body {
+        color: var(--fg);
+        font: 400 13px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+        font-feature-settings: 'cv11', 'ss03';
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Stage ------------------------------------------------------------------------------ */
+
+      .stage {
+        position: relative;
+        isolation: isolate;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        border-radius: 28px;
+        background:
+          radial-gradient(52% 64% at 4% 0%, var(--glow-a), transparent 70%),
+          radial-gradient(46% 58% at 100% 100%, var(--glow-b), transparent 70%),
+          radial-gradient(36% 46% at 92% 6%, var(--glow-c), transparent 70%),
+          var(--stage);
+        box-shadow: inset 0 0 0 1px var(--stage-edge);
+      }
+
+      .stage::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: radial-gradient(var(--dots) 1px, transparent 1.4px) 0 0 / 22px 22px;
+        mask-image: radial-gradient(70% 80% at 50% 45%, #000 20%, transparent 90%);
+      }
+
+      /* App window ------------------------------------------------------------------------- */
+
+      .app {
+        position: absolute;
+        top: 40px;
+        right: 40px;
+        bottom: 60px;
+        left: 216px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-radius: 14px;
+        background: var(--bg);
+        box-shadow: var(--window-shadow);
+      }
+
+      [data-scene='panel'] .app {
+        bottom: 40px;
+        left: 40px;
+      }
+
+      .chrome {
+        position: relative;
+        display: flex;
+        flex: none;
+        align-items: center;
+        height: 40px;
+        padding: 0 14px;
+        border-bottom: 1px solid var(--line);
+        background: var(--chrome);
+      }
+
+      .lights {
+        display: flex;
+        gap: 7px;
+      }
+
+      .lights i {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.18);
+      }
+
+      .lights i:nth-child(1) {
+        background: #ff5f57;
+      }
+
+      .lights i:nth-child(2) {
+        background: #febc2e;
+      }
+
+      .lights i:nth-child(3) {
+        background: #28c840;
+      }
+
+      .url {
+        position: absolute;
+        left: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 300px;
+        height: 24px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--bg);
+        color: var(--muted);
+        font-size: 11.5px;
+        transform: translateX(-50%);
+      }
+
+      .url svg {
+        width: 10px;
+        height: 10px;
+        color: var(--soft);
+      }
+
+      .top {
+        display: flex;
+        flex: none;
+        align-items: center;
+        gap: 24px;
+        height: 56px;
+        padding: 0 16px 0 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 14px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+      }
+
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, #6366f1, #06b6d4);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 2px rgb(79 70 229 / 0.3);
+      }
+
+      .nav {
+        display: flex;
+        gap: 2px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .nav span {
+        padding: 6px 10px;
+        border-radius: 7px;
+      }
+
+      .nav .on {
+        background: var(--hover);
+        color: var(--fg);
+      }
+
+      .end {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: auto;
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 176px;
+        height: 32px;
+        margin-right: 4px;
+        padding: 0 6px 0 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--soft);
+        font-size: 12.5px;
+      }
+
+      .search svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      kbd {
+        margin-left: auto;
+        padding: 3px 5px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        color: var(--muted);
+        font: 500 10.5px/1 Inter, system-ui, sans-serif;
+      }
+
+      ship-dot {
+        --shipdot-font: 400 14px/1.5 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+        --shipdot-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 24px 48px -12px rgb(15 23 42 / 0.3);
+        color: var(--fg);
+      }
+
+      [data-theme='dark'] ship-dot {
+        --shipdot-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 24px 48px -12px rgb(0 0 0 / 0.8);
+      }
+
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f59e0b, #ec4899);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--line);
+      }
+
+      /* Page ------------------------------------------------------------------------------- */
+
+      .main {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 18px;
+        min-height: 0;
+        padding: 22px 24px 24px;
+      }
+
+      .head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+      }
+
+      .crumb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0 0 4px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .crumb span {
+        color: var(--soft);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 21px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .actions button {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        height: 34px;
+        padding: 0 13px 0 11px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 600 13px/1 Inter, system-ui, sans-serif;
+        box-shadow: var(--btn-shadow);
+        cursor: pointer;
+      }
+
+      .actions svg {
+        width: 15px;
+        height: 15px;
+        color: var(--muted);
+      }
+
+      .actions .primary {
+        border-color: #4338ca;
+        background: #4f46e5;
+        color: #fff;
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 1px 2px rgb(67 56 202 / 0.35);
+      }
+
+      .actions .primary svg {
+        color: #fff;
+      }
+
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .kpi {
+        padding: 14px 16px 13px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+
+      .kpi p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .kpi div {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 5px;
+      }
+
+      .kpi strong {
+        font-size: 22px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .delta {
+        padding: 2px 7px;
+        border-radius: 99px;
+        background: var(--up-bg);
+        color: var(--up);
+        font-size: 11.5px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .kpi small {
+        display: block;
+        margin-top: 3px;
+        color: var(--soft);
+        font-size: 11.5px;
+      }
+
+      .chart {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+        padding: 14px 16px 8px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+
+      .chart header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+      }
+
+      .chart h2 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .chart h2 span {
+        margin-left: 6px;
+        color: var(--soft);
+        font-weight: 500;
+      }
+
+      .legend {
+        display: flex;
+        gap: 14px;
+        color: var(--muted);
+        font-size: 11.5px;
+        font-weight: 500;
+      }
+
+      .legend span::before {
+        content: '';
+        display: inline-block;
+        width: 12px;
+        height: 2px;
+        margin: 0 6px 3px 0;
+        border-radius: 2px;
+        background: var(--brand);
+        vertical-align: middle;
+      }
+
+      .legend span + span::before {
+        background: repeating-linear-gradient(90deg, var(--prev) 0 3px, transparent 3px 5px);
+      }
+
+      .plot {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+        margin-top: 6px;
+      }
+
+      .plot-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      .plot text {
+        fill: var(--soft);
+        font: 500 10.5px Inter, system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Hidden behind the code card and the tooltip in the hero anyway. */
+      [data-scene='hero'] .kpi small,
+      [data-scene='hero'] .chart header {
+        display: none;
+      }
+
+      /* Code card -------------------------------------------------------------------------- */
+
+      .code {
+        position: absolute;
+        bottom: 40px;
+        left: 40px;
+        z-index: 1;
+        width: 384px;
+        margin: 0;
+        overflow: hidden;
+        border-radius: 14px;
+        background: var(--code-bg);
+        color: #c9d1e3;
+        box-shadow: 0 0 0 1px var(--code-edge), var(--code-shadow);
+      }
+
+      [data-scene='panel'] .code {
+        display: none;
+      }
+
+      .code .bar {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        height: 40px;
+        padding: 0 16px;
+        border-bottom: 1px solid rgb(255 255 255 / 0.07);
+        background: rgb(255 255 255 / 0.03);
+        color: #7d87a3;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .code .bar b {
+        color: #e6e9f2;
+        font-weight: 500;
+      }
+
+      .code .bar svg {
+        flex: none;
+        width: 18px;
+        height: 18px;
+        color: #8b95b3;
+      }
+
+      .code pre {
+        margin: 0;
+        padding: 12px 0 14px;
+        counter-reset: line;
+        font: 400 12.5px/21px 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo,
+          Consolas, monospace;
+        font-variant-ligatures: none;
+      }
+
+      .code .ln {
+        position: relative;
+        display: block;
+        padding-right: 16px;
+        white-space: pre;
+      }
+
+      .code .ln::before {
+        content: counter(line);
+        counter-increment: line;
+        display: inline-block;
+        width: 42px;
+        padding-right: 16px;
+        color: #454d68;
+        text-align: right;
+      }
+
+      .code .hl {
+        background: linear-gradient(90deg, rgb(244 114 182 / 0.18), rgb(244 114 182 / 0.03) 80%);
+        box-shadow: inset 2px 0 0 #f472b6;
+      }
+
+      .code .hl::before {
+        color: #f9a8d4;
+      }
+
+      .code .hl::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 18px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #f472b6;
+        box-shadow: 0 0 0 4px rgb(244 114 182 / 0.22), 0 0 0 8px rgb(244 114 182 / 0.08);
+        transform: translateY(-50%);
+      }
+
+      .t-punct {
+        color: #586180;
+      }
+
+      .t-key {
+        color: #7cc4fa;
+      }
+
+      .t-date {
+        color: #fcd34d;
+      }
+
+      .t-type {
+        color: #a5b4fc;
+      }
+
+      .t-str {
+        color: #e6e9f2;
+      }
+
+      .t-target {
+        color: #f9a8d4;
+        font-weight: 600;
+      }
+
+      .t-link {
+        color: #8b95b3;
+      }
+
+      .t-strong {
+        color: #fff;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="app">
+        <div class="chrome" aria-hidden="true">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <div class="url">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 1a3.5 3.5 0 0 0-3.5 3.5V6H4a1.5 1.5 0 0 0-1.5 1.5v6A1.5 1.5 0 0 0 4 15h8a1.5 1.5 0 0 0 1.5-1.5v-6A1.5 1.5 0 0 0 12 6h-.5V4.5A3.5 3.5 0 0 0 8 1Zm2 5V4.5a2 2 0 1 0-4 0V6h4Z" />
+            </svg>
+            app.acme.example/reports/revenue
+          </div>
+        </div>
+
+        <header class="top">
+          <div class="brand">
+            <span class="mark">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="#fff" aria-hidden="true">
+                <rect x="1.5" y="7" width="2.6" height="5.5" rx="1.1" />
+                <rect x="5.7" y="4" width="2.6" height="8.5" rx="1.1" />
+                <rect x="9.9" y="1.5" width="2.6" height="11" rx="1.1" />
+              </svg>
+            </span>
+            Acme Analytics
+          </div>
+          <nav class="nav" aria-label="Demo app">
+            <span>Overview</span>
+            <span class="on">Reports</span>
+            <span>Customers</span>
+            <span class="wide">Billing</span>
+          </nav>
+          <div class="end">
+            <div class="search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              Search
+              <kbd>⌘K</kbd>
+            </div>
+            <span class="avatar">MR</span>
+            <ship-dot src="shipdot.json" storage-key="showcase" theme="light"></ship-dot>
+          </div>
+        </header>
+
+        <main class="main">
+          <div class="head">
+            <div>
+              <p class="crumb">Reports <span>/</span> Revenue</p>
+              <h1>Revenue overview</h1>
+            </div>
+            <div class="actions">
+              <button type="button" id="btn-filter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <path d="M4 6h16M7 12h10M10 18h4" />
+                </svg>
+                Filter
+              </button>
+              <button type="button" id="btn-share">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" />
+                </svg>
+                Share
+              </button>
+              <button type="button" id="btn-export" class="primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+                </svg>
+                Export
+              </button>
+            </div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <p>Revenue</p>
+              <div><strong>$48.2k</strong><span class="delta">+12.4%</span></div>
+              <small>vs. previous 30 days</small>
+            </div>
+            <div class="kpi">
+              <p>Orders</p>
+              <div><strong>1,284</strong><span class="delta">+3.1%</span></div>
+              <small>vs. previous 30 days</small>
+            </div>
+            <div class="kpi">
+              <p>Average order</p>
+              <div><strong>$37.54</strong><span class="delta">+9.0%</span></div>
+              <small>vs. previous 30 days</small>
+            </div>
+          </div>
+
+          <section class="chart" aria-hidden="true">
+            <header>
+              <h2>Daily revenue<span>Last 30 days</span></h2>
+              <div class="legend"><span>This period</span><span>Previous</span></div>
+            </header>
+            <div class="plot"><svg class="plot-svg" data-plot aria-hidden="true"></svg></div>
+          </section>
+        </main>
+      </div>
+
+      <figure class="code" aria-label="Entry source">
+        <div class="bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="5" width="20" height="14" rx="2.5" />
+            <path d="M6 15V9l2.5 3L11 9v6M16 9v6m-2.2-2.2L16 15l2.2-2.2" stroke-linecap="round" />
+          </svg>
+          <span>.shipdot/entries/<b data-file></b></span>
+        </div>
+        <pre data-source></pre>
+      </figure>
+    </div>
+
+    <script type="module">
+      const params = new URLSearchParams(location.search)
+      const theme = params.get('theme') === 'dark' ? 'dark' : 'light'
+      const scene = params.get('scene') === 'panel' ? 'panel' : 'hero'
+      const root = document.documentElement
+      root.dataset.theme = theme
+      root.dataset.scene = scene
+      document.querySelector('ship-dot').setAttribute('theme', theme)
+      if (scene === 'hero') for (const el of document.querySelectorAll('.wide')) el.remove()
+
+      // Code card: the entry exactly as it is compiled into shipdot.json.
+      const esc = (s) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+      const span = (cls, text) => `<span class="t-${cls}">${esc(text)}</span>`
+      const file = params.get('entry') ?? ''
+      const source = await (await fetch(`entries/${encodeURIComponent(file)}`)).text()
+      let fences = 0
+      const lines = source.trimEnd().split('\n').map((line) => {
+        if (line === '---') {
+          fences++
+          return { html: span('punct', line) }
+        }
+        if (fences === 1) {
+          const [, key, value] = line.match(/^([\w-]+):\s*(.*)$/) ?? []
+          if (!key) return { html: esc(line) }
+          const kind = { date: 'date', type: 'type', target: 'target', link: 'link' }[key] ?? 'str'
+          return {
+            html: `${span('key', key)}${span('punct', ':')} ${span(kind, value)}`,
+            hl: key === 'target',
+          }
+        }
+        return {
+          html: line
+            .split(/\*\*(.+?)\*\*/)
+            .map((part, i) =>
+              i % 2 ? `${span('punct', '**')}${span('strong', part)}${span('punct', '**')}` : esc(part),
+            )
+            .join(''),
+        }
+      })
+      document.querySelector('[data-file]').textContent = file
+      document.querySelector('[data-source]').innerHTML = lines
+        .map((l) => `<span class="ln${l.hl ? ' hl' : ''}">${l.html}</span>`)
+        .join('')
+
+      // Chart: a smooth line for this period over a dashed one for the previous period.
+      const current = [
+        1.12, 1.2, 1.1, 1.26, 1.34, 1.22, 1.38, 1.45, 1.33, 1.49, 1.55, 1.44, 1.6, 1.66, 1.54,
+        1.5, 1.64, 1.74, 1.66, 1.76, 1.84, 1.7, 1.8, 1.9, 1.96, 1.85, 2.0, 2.1, 2.01, 2.18,
+      ]
+      const previous = [
+        1.0, 1.04, 0.97, 1.07, 1.12, 1.05, 1.14, 1.1, 1.18, 1.13, 1.2, 1.16, 1.24, 1.19, 1.27,
+        1.21, 1.29, 1.24, 1.31, 1.27, 1.34, 1.29, 1.36, 1.32, 1.38, 1.34, 1.41, 1.36, 1.43, 1.4,
+      ]
+      const svg = document.querySelector('[data-plot]')
+      const { width, height } = svg.parentElement.getBoundingClientRect()
+      const left = 34
+      const bottom = height - 20
+      const top = 8
+      const [low, high] = [0.5, 2.5]
+      const x = (i) => left + (i / (current.length - 1)) * (width - left - 6)
+      const y = (v) => bottom - ((v - low) / (high - low)) * (bottom - top)
+      const smooth = (values) => {
+        const p = values.map((v, i) => [x(i), y(v)])
+        let d = `M${p[0][0]},${p[0][1]}`
+        for (let i = 0; i < p.length - 1; i++) {
+          const [a, b, c, e] = [p[i - 1] ?? p[i], p[i], p[i + 1], p[i + 2] ?? p[i + 1]]
+          const c1 = [b[0] + (c[0] - a[0]) / 6, b[1] + (c[1] - a[1]) / 6]
+          const c2 = [c[0] - (e[0] - b[0]) / 6, c[1] - (e[1] - b[1]) / 6]
+          d += ` C${c1},${c2},${c}`
+        }
+        return d
+      }
+      const ticks = [0.5, 1, 1.5, 2, 2.5]
+        .map(
+          (v) =>
+            `<line x1="${left}" x2="${width}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" />` +
+            `<text x="${left - 10}" y="${y(v) + 3.5}" text-anchor="end">$${v}k</text>`,
+        )
+        .join('')
+      const days = ['Sep 15', 'Sep 22', 'Sep 29', 'Oct 6', 'Oct 13']
+      const labels = days
+        .map((d, i) => `<text x="${x(i * 7)}" y="${height - 2}" text-anchor="middle">${d}</text>`)
+        .join('')
+      const line = smooth(current)
+      const end = [x(current.length - 1), y(current.at(-1))]
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--brand)" stop-opacity="0.24" />
+            <stop offset="1" stop-color="var(--brand)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        ${ticks}${labels}
+        <path d="${smooth(previous)}" fill="none" stroke="var(--prev)" stroke-width="1.5" stroke-dasharray="3 3" />
+        <path d="${line} L${x(current.length - 1)},${bottom} L${left},${bottom} Z" fill="url(#fill)" />
+        <path d="${line}" fill="none" stroke="var(--brand)" stroke-width="2.25" stroke-linecap="round" />
+        <circle cx="${end[0]}" cy="${end[1]}" r="9" fill="var(--brand)" fill-opacity="0.16" />
+        <circle cx="${end[0]}" cy="${end[1]}" r="4" fill="var(--brand)" stroke="var(--bg)" stroke-width="2" />`
+
+      // The real widget: loads shipdot.json, shows the badge and puts hotspots on the buttons.
+      document.addEventListener('shipdot:ready', () => (root.dataset.ready = ''), { once: true })
+      await import('./shipdot.js')
+    </script>
+  </body>
+</html>

@@ -45,7 +45,7 @@ Requires Node.js `>=24` (see `.nvmrc`) and pnpm (version pinned in `packageManag
 | Docs site | `pnpm docs` (dev) / `pnpm docs:build` |
 | Rebuild Action bundle | `pnpm build:action` (CI fails if `action/dist` is stale) |
 | Add a changeset | `pnpm changeset` |
-| README screenshots | `pnpm docs:build && node scripts/screenshot.ts` |
+| README images | `pnpm build:packages && node scripts/screenshot.ts` (stage and entries in `scripts/showcase/`) |
 
 Run `pnpm lint && pnpm typecheck && pnpm test` before every commit that touches code.
 

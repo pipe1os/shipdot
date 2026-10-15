@@ -1,55 +1,82 @@
-// Renders the README screenshots from the built docs playground with Playwright.
-// Usage: pnpm docs:build && node scripts/screenshot.ts
-import { readFile } from 'node:fs/promises'
-import { createServer } from 'node:http'
-import { extname, join, normalize } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { chromium } from '@playwright/test'
+// Renders the README images with Playwright: the real <ship-dot> build on a showcase stage
+// (scripts/showcase/stage.html), fed by the entries in scripts/showcase/entries compiled
+// exactly like `shipdot build` does.
+// Usage: pnpm build:packages && node scripts/screenshot.ts
+import { readdir, readFile } from 'node:fs/promises'
+import { chromium, type Page } from '@playwright/test'
+import { compile } from '../packages/core/dist/compile.js'
 
-const root = fileURLToPath(new URL('../apps/docs/dist/', import.meta.url))
-const types: Record<string, string> = {
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.css': 'text/css',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
+const dir = (path: string) => new URL(path, import.meta.url)
+const ENTRY = '2026-10-14-export-excel.md'
+const ORIGIN = 'http://showcase.test'
+
+const names = (await readdir(dir('showcase/entries/'))).filter((name) => name.endsWith('.md'))
+const sources = await Promise.all(
+  names.map(async (name) => ({
+    path: name,
+    content: await readFile(dir(`showcase/entries/${name}`), 'utf8'),
+  })),
+)
+const result = compile(sources, { defaultLocale: 'en', locales: ['en'] })
+if (!result.ok) throw new Error(JSON.stringify(result.diagnostics, null, 2))
+
+const files: Record<string, { body: string | Buffer; type: string }> = {
+  '/': { body: await readFile(dir('showcase/stage.html')), type: 'text/html' },
+  '/shipdot.js': {
+    body: await readFile(dir('../packages/shipdot/dist/shipdot.js')),
+    type: 'text/javascript',
+  },
+  '/shipdot.json': { body: JSON.stringify(result.feed), type: 'application/json' },
 }
-const server = createServer(async (req, res) => {
-  const path = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname).replace(
-    /^\/shipdot/,
-    '',
-  )
-  let file = normalize(join(root, path))
-  if (!extname(file)) file = join(file, 'index.html')
-  try {
-    res.writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' })
-    res.end(await readFile(file))
-  } catch {
-    res.writeHead(404).end()
-  }
-}).listen(4399)
+for (const file of sources)
+  files[`/entries/${file.path}`] = { body: file.content, type: 'text/markdown' }
+
+/** The hero opens the hotspot tooltip on Export; the panel scene opens "What's new". */
+const scenes: Record<string, { height: number; act: (page: Page) => Promise<void> }> = {
+  hero: {
+    height: 640,
+    act: (page) => page.getByRole('button', { name: 'New: Export to Excel' }).click(),
+  },
+  panel: {
+    height: 720,
+    act: (page) => page.getByRole('button', { name: /what's new/i }).click(),
+  },
+}
 
 const browser = await chromium.launch()
-const page = await browser.newPage({ viewport: { width: 1280, height: 760 }, deviceScaleFactor: 2 })
-await page.emulateMedia({ colorScheme: 'light' })
-await page.goto('http://localhost:4399/shipdot/playground/')
-await page.locator('[data-control="locale"]').selectOption('en')
-await page.locator('[data-control="theme"]').selectOption('light')
-const preview = page.locator('.pg-window')
-await preview.scrollIntoViewIfNeeded()
-await page.getByRole('button', { name: 'New: Export to Excel' }).click()
-await page.waitForTimeout(400)
-const box = await preview.boundingBox()
-if (!box) throw new Error('preview not found')
-const clip = { x: box.x - 24, y: box.y - 24, width: box.width + 48, height: box.height + 48 }
-await page.screenshot({ path: '.github/assets/hotspot.png', clip })
-await page.keyboard.press('Escape')
-await page
-  .locator('.pg-widget')
-  .getByRole('button', { name: /what's new/i })
-  .click()
-await page.waitForTimeout(400)
-await page.screenshot({ path: '.github/assets/panel.png', clip })
+const written: string[] = []
+for (const theme of ['light', 'dark'] as const) {
+  const context = await browser.newContext({ deviceScaleFactor: 2, colorScheme: theme })
+  await context.route(`${ORIGIN}/**`, (route) => {
+    const file = files[new URL(route.request().url()).pathname]
+    return file
+      ? route.fulfill({ body: file.body, contentType: file.type })
+      : route.fulfill({ status: 404 })
+  })
+  // Every entry starts unread, so the badge and the hotspots show up.
+  await context.addInitScript(() => localStorage.setItem('shipdot:showcase', '[]'))
+  for (const [scene, { height, act }] of Object.entries(scenes)) {
+    const page = await context.newPage()
+    await page.setViewportSize({ width: 1040, height })
+    await page.goto(`${ORIGIN}/?theme=${theme}&scene=${scene}&entry=${ENTRY}`)
+    await page.waitForSelector('html[data-ready]')
+    await act(page)
+    await page.mouse.move(0, 0)
+    // Freeze the hotspot pulse mid-ring so the still image shows it.
+    await page.evaluate(() => {
+      const layer = document.querySelector('.shipdot-layer')
+      for (const animation of layer?.shadowRoot?.getAnimations() ?? []) {
+        animation.pause()
+        animation.currentTime = 650
+      }
+    })
+    await page.waitForTimeout(300)
+    const path = `.github/assets/${scene}-${theme}.png`
+    await page.screenshot({ path, omitBackground: true })
+    written.push(path)
+    await page.close()
+  }
+  await context.close()
+}
 await browser.close()
-server.close()
-console.log('Wrote .github/assets/hotspot.png and .github/assets/panel.png')
+console.log(`Wrote ${written.join(', ')}`)
