@@ -1,4 +1,4 @@
-import { access, mkdir, writeFile } from 'node:fs/promises'
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { CONFIG_FILE, CONFIG_SCHEMA_URL, DEFAULT_CONFIG, isLocale } from '@shipdot/core'
 import pkg from '../package.json' with { type: 'json' }
@@ -15,6 +15,8 @@ export interface InitResult {
   created: string[]
   skipped: string[]
   outDir: string
+  /** True when the project's package.json depends on the `shipdot` widget package. */
+  widgetInstalled: boolean
 }
 
 const exists = (path: string) =>
@@ -29,6 +31,16 @@ async function detectOutDir(cwd: string): Promise<string> {
   return DEFAULT_CONFIG.outDir
 }
 
+/** Whether the project's package.json depends on the widget package. */
+async function hasWidgetDependency(cwd: string): Promise<boolean> {
+  try {
+    const manifest = JSON.parse(await readFile(join(cwd, 'package.json'), 'utf8'))
+    return ['dependencies', 'devDependencies'].some((field) => manifest?.[field]?.shipdot)
+  } catch {
+    return false
+  }
+}
+
 /**
  * Version range for CDN URLs. The widget shares its version with the CLI. In `0.x` a minor
  * release may break, so pin `major.minor`; from 1.0 on, the major is enough.
@@ -39,6 +51,13 @@ function cdnRange(version: string): string {
 }
 
 export const WIDGET_SNIPPET: string = `<script type="module" src="https://unpkg.com/shipdot@${cdnRange(pkg.version)}"></script>
+<ship-dot src="/shipdot.json"></ship-dot>`
+
+/** For projects that install the `shipdot` package instead of loading it from a CDN. */
+export const WIDGET_IMPORT_SNIPPET = `// Once, in your client entry file (for example src/main.ts):
+import 'shipdot'
+
+<!-- In your HTML or component, where the bell should appear: -->
 <ship-dot src="/shipdot.json"></ship-dot>`
 
 export const WORKFLOW_SNIPPET = `# .github/workflows/shipdot.yml
@@ -106,5 +125,5 @@ This is where we will tell you about new features and fixes, right inside the ap
     )
     created.push(`${DEFAULT_CONFIG.entriesDir}/${name}`)
   }
-  return { created, skipped, outDir }
+  return { created, skipped, outDir, widgetInstalled: await hasWidgetDependency(cwd) }
 }

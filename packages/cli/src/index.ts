@@ -18,6 +18,7 @@ export {
   type InitOptions,
   type InitResult,
   initProject,
+  WIDGET_IMPORT_SNIPPET,
   WIDGET_SNIPPET,
   WORKFLOW_SNIPPET,
 } from './init'

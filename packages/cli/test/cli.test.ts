@@ -81,6 +81,7 @@ describe('shipdot init', () => {
     )
     const range = widget.version.split('.').slice(0, 2).join('.')
     expect(init.stdout).toContain(`src="https://unpkg.com/shipdot@${range}"`)
+    expect(init.stdout).toContain("Or npm install shipdot and import 'shipdot' once on the client.")
     const config = JSON.parse(await readFile(join(dir, 'shipdot.config.json'), 'utf8'))
     expect(config).toMatchObject({ outDir: 'public', defaultLocale: 'en', locales: ['en', 'es'] })
 
@@ -89,6 +90,22 @@ describe('shipdot init', () => {
     const feed = JSON.parse(await readFile(join(dir, 'public/shipdot.json'), 'utf8'))
     expect(validateFeed(feed)).toEqual([])
     expect(feed.entries).toHaveLength(1)
+  })
+
+  it('suggests importing the widget when the project depends on it', async () => {
+    for (const field of ['dependencies', 'devDependencies']) {
+      const dir = await tempDir()
+      await writeFile(join(dir, 'package.json'), JSON.stringify({ [field]: { shipdot: '^0.1.1' } }))
+      const { code, stdout } = await cli(['init'], dir)
+      expect(code).toBe(0)
+      expect(stdout).toContain("import 'shipdot'")
+      expect(stdout).toContain('<ship-dot src="/shipdot.json"></ship-dot>')
+      expect(stdout).not.toContain('unpkg.com')
+    }
+    // A broken or unrelated package.json falls back to the CDN snippet.
+    const other = await tempDir()
+    await writeFile(join(other, 'package.json'), '{ not json')
+    expect((await cli(['init'], other)).stdout).toContain('unpkg.com/shipdot@')
   })
 
   it('detects static/ and never overwrites existing files', async () => {
