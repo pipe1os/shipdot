@@ -13,6 +13,7 @@ out/
 apps/docs/public/shipdot.json
 apps/docs/public/llms.txt
 apps/docs/public/llms-full.txt
+apps/docs/public/shipdot-assets/
 examples/*/public/shipdot.json
 examples/*/public/llms*.txt
 examples/*/public/shipdot-assets/
