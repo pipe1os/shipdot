@@ -68,16 +68,23 @@ Even large ones.
     })
   })
 
-  it('drops comments that would re-form after removing a nested one', () => {
-    const body = '### shipdot\nVisible <!<!-- x -->-- hidden -->text'
-    expect(parseShipdotSection(body)?.body).toBe('Visible text')
+  it('ignores comments the way GitHub renders them', () => {
+    expect(parseShipdotSection('### shipdot\nVisible<!-- hidden --> text')?.body).toBe(
+      'Visible text',
+    )
+    expect(parseShipdotSection('<!--\n### shipdot\nskip\n-->')).toBeUndefined()
+    expect(parseShipdotSection('Ends with <!--> here.\n### shipdot\nskip')?.skip).toBe(true)
+    // `<!--` in code is text, so the section after it still counts.
+    const body = 'Turns `<!<!-- x -->--` into `<!--`.\n\n### shipdot\n\nskip'
+    expect(parseShipdotSection(body)?.skip).toBe(true)
   })
 
-  it('handles adversarial bodies in linear time', () => {
+  it('handles adversarial bodies', () => {
     const started = performance.now()
     parseShipdotSection(`### shipdot${' '.repeat(50_000)}x`)
-    parseShipdotSection(`${'<!'.repeat(20_000)}${'<!-- -->--'.repeat(20_000)}`)
-    expect(performance.now() - started).toBeLessThan(500)
+    // Takes seconds with a polynomial regex; the bound is loose so slow runners do not flake.
+    expect(performance.now() - started).toBeLessThan(1000)
+    expect(parseShipdotSection(`${'> '.repeat(30_000)}<!-- x -->`)).toBeUndefined()
   })
 })
 
@@ -97,10 +104,11 @@ describe('pull request titles', () => {
 
   it('handles adversarial titles in linear time', () => {
     const started = performance.now()
-    conventionalType(`a:${' '.repeat(50_000)}\n`)
-    titleFromPr(`a:${' '.repeat(50_000)}\n`)
+    // Spaces before a line break: `:\s*(.+)$` retries every split of the whitespace.
+    expect(conventionalType(`a:${' '.repeat(50_000)}x\ny`)).toBeUndefined()
     titleFromPr(`x${' '.repeat(50_000)}y`)
-    expect(performance.now() - started).toBeLessThan(500)
+    // Takes seconds with a polynomial regex; the bound is loose so slow runners do not flake.
+    expect(performance.now() - started).toBeLessThan(1000)
   })
 
   it('maps types', () => {

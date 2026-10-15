@@ -44512,6 +44512,40 @@ function summarize(markdown, max = 200) {
 	const text = paragraph ? mdText(paragraph).replace(/\s+/g, " ").trim() : "";
 	return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
 }
+/** Removes the comments from raw HTML: `<!-->` and `<!--->` are empty, unclosed ones run to the end. */
+const stripRawComments = (html) => {
+	let out = "";
+	let from = 0;
+	for (let at = html.indexOf("<!--"); at !== -1; at = html.indexOf("<!--", from)) {
+		out += html.slice(from, at);
+		const empty = html.startsWith(">", at + 4) ? 5 : html.startsWith("->", at + 4) ? 6 : 0;
+		const end = empty ? -1 : html.indexOf("-->", at + 4);
+		from = empty ? at + empty : end === -1 ? html.length : end + 3;
+	}
+	return out + html.slice(from);
+};
+/**
+* Removes HTML comments from Markdown the way GitHub and the widget render it: only raw HTML
+* holds comments, so `<!--` in a code span, a code block or plain text stays, and a comment
+* block that is never closed hides the rest of the document. One parse, linear time.
+*/
+function stripHtmlComments(markdown) {
+	const html = [];
+	const stack = [unified().use(remarkParse).parse(markdown)];
+	for (let node = stack.pop(); node; node = stack.pop()) {
+		const start = node.position?.start.offset;
+		const end = node.position?.end.offset;
+		if (node.type === "html" && start !== void 0 && end !== void 0) html.push([start, end]);
+		for (const child of node.children ?? []) stack.push(child);
+	}
+	let out = "";
+	let from = 0;
+	for (const [start, end] of html.sort((a, b) => a[0] - b[0])) {
+		out += markdown.slice(from, start) + stripRawComments(markdown.slice(start, end));
+		from = end;
+	}
+	return out + markdown.slice(from);
+}
 /** Joins and normalizes POSIX paths. Returns undefined if the result escapes the root. */
 const resolvePath = (dir, ref) => {
 	const out = [];
@@ -44698,24 +44732,6 @@ const TYPE_LABEL = {
 const llmsHeader = (options) => {
 	return `# ${options.name ? `${options.name}: what's new` : "What's new"}\n\n> ${(options.description ?? `Product updates${options.name ? ` for ${options.name}` : ""}, newest first.`).replace(/\s+/g, " ")}\n`;
 };
-/**
-* Removes HTML comments in one linear pass. An unterminated `<!--` hides the rest of the
-* text, as in HTML. The result never contains `<!--`, not even one formed by removing a
-* comment (`<!<!-- x -->--`), which a single regex replace would leave behind.
-*/
-function stripHtmlComments(text) {
-	const out = [];
-	for (let i = 0; i < text.length;) {
-		out.push(text.charAt(i++));
-		if (out.length >= 4 && out.slice(-4).join("") === "<!--") {
-			out.length -= 4;
-			const end = text.indexOf("-->", i);
-			if (end === -1) break;
-			i = end + 3;
-		}
-	}
-	return out.join("");
-}
 const stripComments = (markdown) => stripHtmlComments(markdown).trim();
 function toLlmsTxt(compiled, options) {
 	const lines = compiled.map(({ entry, markdown }) => {

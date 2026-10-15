@@ -256,6 +256,17 @@ You can now export any report to **Excel** with one click.
     it('handles an empty feed', () => {
       expect(compile([], options).llms).toContain('- No updates yet.')
     })
+
+    it('drops comments but keeps <!-- written as code', () => {
+      const entry = file(
+        '2026-10-14-comments.md',
+        '---\ndate: 2026-10-14\ntype: new\ntitle: Comments\n---\n<!-- internal -->\nType `<!--` to start a comment.\n\nMore details.\n',
+      )
+      const { llms, llmsFull } = compile([entry], options)
+      expect(llms).toContain('- Comments: New on 2026-10-14. Type <!-- to start a comment.\n')
+      expect(llmsFull).toContain('\nType `<!--` to start a comment.\n\nMore details.\n')
+      expect(llmsFull).not.toContain('internal')
+    })
   })
 })
 
@@ -295,17 +306,27 @@ describe('serializeEntry', () => {
 })
 
 describe('stripHtmlComments', () => {
-  it('removes comments, including unterminated ones', () => {
+  it('removes inline and block comments', () => {
     expect(stripHtmlComments('a<!-- x -->b<!-- y -->c')).toBe('abc')
     expect(stripHtmlComments('a\n<!--\nmulti\nline\n-->\nb')).toBe('a\n\nb')
-    expect(stripHtmlComments('a <!-- never closed')).toBe('a ')
+    expect(stripHtmlComments('<!-- note --> kept\n\nPara')).toBe(' kept\n\nPara')
+    expect(stripHtmlComments('> <!--\n> quoted\n> -->\n> after')).toBe('> \n> after')
     expect(stripHtmlComments('no comments, a < b -> c')).toBe('no comments, a < b -> c')
   })
 
-  it('never leaves a comment opener formed by removing another comment', () => {
-    expect(stripHtmlComments('a<!<!-- x -->-- y -->b')).toBe('ab')
-    expect(stripHtmlComments('<<!-- -->!<!-- -->-<!-- -->-<script>')).toBe('')
-    const nested = `${'<!'.repeat(5000)}${'<!-- -->--'.repeat(5000)}`
-    expect(stripHtmlComments(nested)).not.toContain('<!--')
+  it('treats <!--> and <!---> as empty comments', () => {
+    expect(stripHtmlComments('a <!--> b')).toBe('a  b')
+    expect(stripHtmlComments('a <!---> b')).toBe('a  b')
+    expect(stripHtmlComments('<!--> b\n\nc')).toBe(' b\n\nc')
+  })
+
+  it('hides the rest of the document after an unclosed comment block', () => {
+    expect(stripHtmlComments('Text\n<!-- never closed\n\nMore')).toBe('Text\n')
+  })
+
+  it('keeps <!-- that Markdown shows as text', () => {
+    const code = 'Type `<!--` to start.\n\n```html\n<!-- example -->\n```\n\nMore'
+    expect(stripHtmlComments(code)).toBe(code)
+    expect(stripHtmlComments('a <!-- never closed')).toBe('a <!-- never closed')
   })
 })
