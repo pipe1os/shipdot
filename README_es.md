@@ -31,7 +31,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/hero-dark.webp">
-    <img src=".github/assets/hero-light.webp" alt="Una app de analítica de demostración con hotspots pulsantes sobre sus botones Filter y Export y un tooltip que anuncia Export to Excel, junto a la entrada Markdown con target: #btn-export que lo puso ahí" width="100%">
+    <img src=".github/assets/hero-light.webp" alt="Una app de analítica de demostración junto a la entrada Markdown que anuncia su nueva función: la línea target: #btn-export de la entrada queda a la altura de un hotspot rojo pulsante sobre el botón Export de la app, cuyo tooltip anuncia Export to Excel, y la salida de shipdot build aparece debajo de la entrada" width="100%">
   </picture>
 </p>
 
