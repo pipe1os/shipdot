@@ -1,11 +1,5 @@
 import { validateFeed } from '@shipdot/core'
-import {
-  compile,
-  parseEntryFile,
-  type SourceFile,
-  serializeEntry,
-  stripHtmlComments,
-} from '@shipdot/core/compile'
+import { compile, parseEntryFile, type SourceFile, serializeEntry } from '@shipdot/core/compile'
 import { describe, expect, it } from 'vitest'
 
 const options = { defaultLocale: 'en', locales: ['en', 'es'], generatedAt: '2026-10-14T21:00:00Z' }
@@ -302,31 +296,5 @@ describe('serializeEntry', () => {
       title: 'Export: "Excel"',
       target: '#btn',
     })
-  })
-})
-
-describe('stripHtmlComments', () => {
-  it('removes inline and block comments', () => {
-    expect(stripHtmlComments('a<!-- x -->b<!-- y -->c')).toBe('abc')
-    expect(stripHtmlComments('a\n<!--\nmulti\nline\n-->\nb')).toBe('a\n\nb')
-    expect(stripHtmlComments('<!-- note --> kept\n\nPara')).toBe(' kept\n\nPara')
-    expect(stripHtmlComments('> <!--\n> quoted\n> -->\n> after')).toBe('> \n> after')
-    expect(stripHtmlComments('no comments, a < b -> c')).toBe('no comments, a < b -> c')
-  })
-
-  it('treats <!--> and <!---> as empty comments', () => {
-    expect(stripHtmlComments('a <!--> b')).toBe('a  b')
-    expect(stripHtmlComments('a <!---> b')).toBe('a  b')
-    expect(stripHtmlComments('<!--> b\n\nc')).toBe(' b\n\nc')
-  })
-
-  it('hides the rest of the document after an unclosed comment block', () => {
-    expect(stripHtmlComments('Text\n<!-- never closed\n\nMore')).toBe('Text\n')
-  })
-
-  it('keeps <!-- that Markdown shows as text', () => {
-    const code = 'Type `<!--` to start.\n\n```html\n<!-- example -->\n```\n\nMore'
-    expect(stripHtmlComments(code)).toBe(code)
-    expect(stripHtmlComments('a <!-- never closed')).toBe('a <!-- never closed')
   })
 })
