@@ -100,7 +100,7 @@ Target: **MVP v0.1.0** (not published).
 - [x] Secrets masked with `core.setSecret`; CI checks `action/dist` is up to date
 - [x] Workflows: `shipdot.yml` (dogfooding), example workflow in README and `examples/`
 
-**Acceptance**: unit tests with mocked GitHub API; `check:action` passes in CI.
+**Acceptance**: unit tests with mocked GitHub API; CI checks `action/dist` is up to date (since ADR 0005, `pnpm build` must leave the working tree clean).
 
 ## Phase 9 — Docs site, playground, examples
 
@@ -169,6 +169,7 @@ Target: **MVP v0.1.0** (not published).
 - **README images are WebP**, encoded by the same Chromium that renders them in `scripts/screenshot.ts` (quality 0.95, about a quarter of the PNG size, no new dependency). The logo wordmark is outlined Inter Bold, so it no longer depends on the viewer's system font.
 - **The release workflow tags the Action** (`vX.Y.Z`, and moves `vX`) after Changesets publishes, so `uses: pipe1os/shipdot@v0` keeps resolving. Agents still never create tags themselves.
 - **CI matrix Node 24 + 26.** Node 24 is the active LTS (minimum in `engines`); Node 26 becomes LTS on 2026-10-28. Node 22 is in maintenance and below the required minimum.
+- **Reproducible builds.** The Windows "dirty `action/dist`" report was not a path or line-ending issue: the v0.1.0 version bump inlined a new CLI version without rebuilding the bundle (CI on `main` failed the same way on Linux; `version-packages` now rebuilds it). The bundle also drops `//#region` comments, whose pnpm store paths could differ per machine. CI checks a clean tree after `pnpm build` on Ubuntu (Node 24 and 26) and Windows (Node 24, the full build), replacing the `check:action` script and step. The Ubuntu jobs keep their `Check (Node N)` names because the `main` ruleset requires them by name, and generated feeds stay gitignored instead of faking `generatedAt` (ADR 0005). Releases keep `pnpm publish`: pnpm 12 does the OIDC exchange and provenance natively, so no switch to `npm publish` was needed.
 
 ## Status log
 
@@ -188,3 +189,4 @@ Target: **MVP v0.1.0** (not published).
 - 2026-10-15 — CI: the E2E job installs only Chromium's headless shell, without system packages, and drops a redundant packages build (47s → 27s); the Node 26 job builds the packages only. CI wall time went from about 50s to 38s.
 - 2026-10-15 — Release fix: `scripts/sync-cdn-version.ts` failed the Release workflow on `main` with ENOENT because `git ls-files` (which reads the index) still listed the changeset `changeset version` had just deleted. The script now skips `.changeset/`, like `CHANGELOG.md`.
 - 2026-10-15 — Security: fixed the open CodeQL alerts in sources. HTML comments are stripped with the Markdown parser by `stripHtmlComments` (`@shipdot/core/compile`), so `<!--` in code spans and code blocks is kept, as GitHub and the widget render it; `shipdot draft` title and `### shipdot` heading regexes no longer backtrack polynomially on untrusted PR text. Adversarial-input tests added (they fail on the old code).
+- 2026-10-15 — Reproducible builds: the Action bundle drops `//#region` comments with pnpm store paths (byte-identical on Windows and Linux), CI fails if `pnpm build` leaves the working tree dirty and also runs on `windows-latest` with Node 24, ADR 0005 (generated feeds and copied assets stay gitignored), PowerShell 7 note in CONTRIBUTING, `release.yml` publishes with pnpm trusted publishing (no `registry-url`, no `NPM_TOKEN`), patch changeset for the first CI release.

@@ -11,7 +11,6 @@
     "build": "pnpm -r build",
     "build:packages": "pnpm --filter \"./packages/*\" build",
     "build:action": "pnpm --filter @shipdot/action build",
-    "check:action": "pnpm build:action && git diff --exit-code -- action/dist",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "pnpm --filter shipdot build && playwright test",

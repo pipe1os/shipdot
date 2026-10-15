@@ -43,7 +43,7 @@ Requires Node.js `>=24` (see `.nvmrc`) and pnpm (version pinned in `packageManag
 | Typecheck (TypeScript 7 `tsc`) | `pnpm typecheck` |
 | Widget size budget | `pnpm size` (run `pnpm build` first) |
 | Docs site | `pnpm docs` (dev) / `pnpm docs:build` |
-| Rebuild Action bundle | `pnpm build:action` (CI fails if `action/dist` is stale) |
+| Rebuild Action bundle | `pnpm build:action` (CI fails if `pnpm build` leaves the working tree dirty, on Ubuntu or Windows) |
 | Add a changeset | `pnpm changeset` |
 | README images | `pnpm build:packages && node scripts/screenshot.ts` (stage and entries in `scripts/showcase/`) |
 
@@ -100,9 +100,11 @@ Run `pnpm lint && pnpm typecheck && pnpm test` before every commit that touches 
 ## Tooling notes
 
 - pnpm enforces `minimumReleaseAge`: versions published less than a day ago are rejected. Pick the previous patch instead of relaxing the policy.
-- `shellEmulator: true` in `pnpm-workspace.yaml` makes `VAR=1 cmd` scripts work on every OS. Astro and Next.js scripts set `ASTRO_TELEMETRY_DISABLED=1` / `NEXT_TELEMETRY_DISABLED=1`.
+- `shellEmulator: true` in `pnpm-workspace.yaml` makes `VAR=1 cmd` scripts work on every OS. On Windows use PowerShell 7. Astro and Next.js scripts set `ASTRO_TELEMETRY_DISABLED=1` / `NEXT_TELEMETRY_DISABLED=1`.
 - Biome does not see template usage in `.astro`/`.vue` files, so unused-variable rules are off for them (`biome.json` overrides).
 - The CLI bin is a committed shim (`packages/cli/bin/shipdot.js`) so pnpm links it before the first build.
+- `pnpm build` must leave `git status` clean on every OS (ADR 0005): the Action bundle is built without path-bearing region comments, `pnpm version-packages` rebuilds it, and generated feeds are gitignored.
+- Releases publish from CI (`release.yml`) with npm trusted publishing through `pnpm publish` (pnpm 12 does the OIDC exchange and provenance). There is no `NPM_TOKEN`.
 
 ## Known technical debt
 

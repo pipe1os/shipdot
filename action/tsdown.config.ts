@@ -11,4 +11,8 @@ export default defineConfig({
   dts: false,
   minify: false,
   deps: { alwaysBundle: [/.*/] },
+  // No `//#region <path>` comments: they embed node_modules/.pnpm paths, which depend on the
+  // local pnpm store layout, so the bundle would not be byte-identical across machines
+  // (docs/adr/0005-reproducible-builds.md).
+  inputOptions: { experimental: { attachDebugInfo: 'none' } },
 })

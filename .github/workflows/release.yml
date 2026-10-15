@@ -14,11 +14,13 @@ concurrency:
 jobs:
   release:
     name: Version or publish packages
-    # Disabled until npm is set up. To enable:
-    #   1. Create the @shipdot organization on npmjs.com.
-    #   2. Configure trusted publishing for shipdot, @shipdot/core and @shipdot/cli with this
-    #      repository and the workflow file "release.yml".
-    #   3. Set the repository variable SHIPDOT_RELEASE_ENABLED to "true".
+    # Publishes with npm trusted publishing (OIDC): no NPM_TOKEN secret exists or is needed.
+    # `changeset publish` runs `pnpm publish` (pnpm from `packageManager`), and pnpm >= 12
+    # exchanges the GitHub OIDC token for a short-lived npm token and attaches provenance.
+    # No `registry-url` on setup-node on purpose: it would write an .npmrc with a placeholder
+    # NODE_AUTH_TOKEN. Requirements: trusted publishing configured on npmjs.com for shipdot,
+    # @shipdot/core and @shipdot/cli (this repository, workflow "release.yml"), and the
+    # repository variable SHIPDOT_RELEASE_ENABLED set to "true".
     if: ${{ vars.SHIPDOT_RELEASE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -32,7 +34,6 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         id: changesets
@@ -43,7 +44,6 @@ jobs:
           pr-title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: 'true'
       # `uses: pipe1os/shipdot@v0` resolves through these tags: `vX.Y.Z` marks the release and
       # the major tag `vX` moves to it, the usual convention for GitHub Actions.
       - name: Tag the Action release
