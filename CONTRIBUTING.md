@@ -14,6 +14,8 @@ pnpm build
 pnpm test
 ```
 
+On Windows, use **PowerShell 7** (`pwsh`) rather than Windows PowerShell 5.1. Package scripts run through pnpm's shell emulator (`shellEmulator: true` in `pnpm-workspace.yaml`), so syntax such as `VAR=1 command` works in any shell. CI builds on Windows too, and `pnpm build` must leave `git status` clean on every OS (see [ADR 0005](docs/adr/0005-reproducible-builds.md)).
+
 For end-to-end tests, install the Playwright browser once:
 
 ```bash
@@ -75,7 +77,7 @@ pick the packages, the bump (`patch` for fixes, `minor` for features while we ar
 1. Open an issue first for anything bigger than a small fix, so we can agree on the approach.
 2. Keep pull requests focused: one change per PR.
 3. Fill the template, including the **`### shipdot`** section: it becomes the in-app note for shipdot's own users (we dogfood the project), or write `skip`.
-4. CI must be green: lint, typecheck, unit tests, build, size budget, e2e and the Action bundle check.
+4. CI must be green on Ubuntu and Windows: lint, typecheck, unit tests, build (which must leave the working tree clean), size budget and e2e.
 
 ## Proposing features
 

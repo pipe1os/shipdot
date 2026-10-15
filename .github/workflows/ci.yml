@@ -14,11 +14,13 @@ concurrency:
 
 jobs:
   check:
-    name: Check (Node ${{ matrix.node }})
-    runs-on: ubuntu-latest
+    name: Check (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        # Windows catches builds that are not reproducible across operating systems.
+        os: [ubuntu-latest, windows-latest]
         # 24 is the active LTS (minimum supported), 26 becomes LTS on 2026-10-28.
         node: [24, 26]
     steps:
@@ -34,14 +36,22 @@ jobs:
       - run: pnpm lint
       # Docs and examples typecheck against the built packages, so build first.
       - run: pnpm build
+      # The build must not change tracked files (for example a stale action/dist) or leave
+      # untracked ones (generated output must be gitignored). See docs/adr/0005.
+      - name: Build leaves the working tree clean
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::pnpm build changed the working tree. Commit the regenerated files (pnpm build:action for action/dist) or gitignore generated output."
+            git status --porcelain
+            git --no-pager diff --text | head -n 100 || true
+            exit 1
+          fi
       - run: pnpm typecheck
       - run: pnpm test
       - name: Widget size budget
-        if: matrix.node == 24
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 24
         run: pnpm size
-      - name: Action bundle is up to date
-        if: matrix.node == 24
-        run: pnpm check:action
 
   e2e:
     name: E2E and accessibility
