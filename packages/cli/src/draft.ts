@@ -22,10 +22,16 @@ const unquote = (value: string) =>
     .replace(/^(["'`])(.*)\1$/, '$2')
     .trim()
 
+// A Markdown thematic break (`---`, `***`, `___`, spaces allowed). Each repetition starts with
+// the marker character, so the pattern cannot backtrack polynomially.
+const THEMATIC_BREAK_RE = /^ {0,3}(?:(?:-[ \t]*){3,}|(?:\*[ \t]*){3,}|(?:_[ \t]*){3,})$/
+
 /**
  * Reads the `### shipdot` section of a pull request body. Leading `title:`, `type:`,
- * `target:` and `link:` lines are metadata; the rest is the note. A section that says
- * `skip` opts the pull request out. Returns undefined when there is no (filled) section.
+ * `target:` and `link:` lines are metadata; the rest is the note. The section ends at the
+ * next heading of the same or a higher level, or at a horizontal rule (`---`), where tools
+ * usually append their footers. A section that says `skip` opts the pull request out.
+ * Returns undefined when there is no (filled) section.
  */
 export function parseShipdotSection(body: string | null | undefined): ShipdotSection | undefined {
   if (!body) return undefined
@@ -36,7 +42,9 @@ export function parseShipdotSection(body: string | null | undefined): ShipdotSec
   if (!heading) return undefined
   const rest = text.slice(heading.index + heading[0].length)
   const next = new RegExp(`^#{1,${heading[1]?.length}}[ \\t]`, 'm').exec(rest)
-  const lines = (next ? rest.slice(0, next.index) : rest).trim().split('\n')
+  const all = (next ? rest.slice(0, next.index) : rest).split('\n')
+  const rule = all.findIndex((line) => THEMATIC_BREAK_RE.test(line))
+  const lines = (rule === -1 ? all : all.slice(0, rule)).join('\n').trim().split('\n')
   if (!lines[0]?.trim()) return undefined
   if (/^skip\.?$/i.test(lines[0].trim())) return { skip: true, body: '' }
 

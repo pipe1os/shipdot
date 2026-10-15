@@ -214,7 +214,7 @@ target: "#btn-export"
 You can now export any report to Excel with one click.
 ```
 
-Write `skip` to opt a PR out. PRs labeled `skip-shipdot`, bot PRs and `chore`/`ci`/`test`/`docs`/`refactor` PRs are skipped automatically.
+The note ends at the next heading or at a horizontal rule (`---`), so keep the section above any footer that tools add to the description. Write `skip` to opt a PR out. PRs labeled `skip-shipdot`, bot PRs and `chore`/`ci`/`test`/`docs`/`refactor` PRs are skipped automatically.
 
 ## LLM mode and privacy
 
