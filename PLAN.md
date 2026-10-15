@@ -162,7 +162,8 @@ Target: **MVP v0.1.0** (not published).
 - **The Spanish README is `README_es.md`** (not `README.es.md`), linked from the top of `README.md`, as requested by the maintainer. No emojis in READMEs except the language flags.
 - **Changesets `fixed` group**: `shipdot`, `@shipdot/core` and `@shipdot/cli` share one version while in `0.x`.
 - **Type-only optional peer dependencies** on the widget (`@types/react`, `vue`, `svelte`, `astro`) so `shipdot/react` & co. resolve under strict installs (pnpm). They are not runtime dependencies.
-- **`pnpm build` includes docs and examples**, so CI proves every example builds. CI builds before type-checking because docs and examples type-check against the built packages.
+- **`pnpm build` includes docs and examples**, so CI proves every example builds. CI builds before type-checking because docs and examples type-check against the built packages. Only the Node 24 job runs the full build; the Node 26 job builds the packages only, since docs and examples exercise Astro, Next.js and Vite rather than shipdot.
+- **E2E installs only Chromium's headless shell, without `--with-deps`.** The tests run headless, and the `ubuntu-latest` image already has Chromium's system libraries; `--with-deps` only added fonts the fixtures do not use and cost ~15s of apt.
 - **CodeQL, Scorecard and the Pages deploy are skipped while the repository is private** (they need a public repo or a paid plan); they run automatically once it is public.
 - **CI matrix Node 24 + 26.** Node 24 is the active LTS (minimum in `engines`); Node 26 becomes LTS on 2026-10-28. Node 22 is in maintenance and below the required minimum.
 
@@ -180,3 +181,4 @@ Target: **MVP v0.1.0** (not published).
 - 2026-10-14 — v0.1.0 follow-up: the version bump left `action/dist` stale (the bundle inlines the CLI version), which failed CI on `main`. Bundle rebuilt, and `pnpm version-packages` now rebuilds the Action bundle so release commits and "Version packages" PRs include it.
 - 2026-10-15 — README images redesigned: a dedicated showcase stage (`scripts/showcase/`) renders the real widget build and a feed compiled from real entries, in light and dark variants (`<picture>`). The hero pairs the Markdown entry with the hotspot it produces; the panel image now illustrates the Widget section. `scripts/screenshot.ts` no longer needs the docs build.
 - 2026-10-15 — Docs: "Copy page" menu next to the title of every Markdown docs page (copy the page as Markdown for LLMs, or view it as plain text). Each page is also served at `<page>.md` by an Astro endpoint, with links made absolute; the MDX pages (home, playground) are left out.
+- 2026-10-15 — CI: the E2E job installs only Chromium's headless shell, without system packages, and drops a redundant packages build; the Node 26 job builds the packages only. Expected CI wall time drops from about 50s to about 30s.

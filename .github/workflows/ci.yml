@@ -33,7 +33,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       # Docs and examples typecheck against the built packages, so build first.
+      # Node 24 also builds docs and examples to prove they build; Node 26 only needs the packages.
       - run: pnpm build
+        if: matrix.node == 24
+      - run: pnpm build:packages
+        if: matrix.node != 24
       - run: pnpm typecheck
       - run: pnpm test
       - name: Widget size budget
@@ -56,8 +60,10 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter "./packages/*" build
-      - run: pnpm exec playwright install --with-deps chromium
+      # Tests run headless, so the headless shell is enough. The runner image already ships
+      # Chromium's system libraries (`--with-deps` only added extra fonts, at ~15s of apt).
+      - run: pnpm exec playwright install --only-shell chromium
+      # `test:e2e` builds the widget first.
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
