@@ -67,6 +67,25 @@ Even large ones.
       body: 'Body',
     })
   })
+
+  it('ignores comments the way GitHub renders them', () => {
+    expect(parseShipdotSection('### shipdot\nVisible<!-- hidden --> text')?.body).toBe(
+      'Visible text',
+    )
+    expect(parseShipdotSection('<!--\n### shipdot\nskip\n-->')).toBeUndefined()
+    expect(parseShipdotSection('Ends with <!--> here.\n### shipdot\nskip')?.skip).toBe(true)
+    // `<!--` in code is text, so the section after it still counts.
+    const body = 'Turns `<!<!-- x -->--` into `<!--`.\n\n### shipdot\n\nskip'
+    expect(parseShipdotSection(body)?.skip).toBe(true)
+  })
+
+  it('handles adversarial bodies', () => {
+    const started = performance.now()
+    parseShipdotSection(`### shipdot${' '.repeat(50_000)}x`)
+    // Takes seconds with a polynomial regex; the bound is loose so slow runners do not flake.
+    expect(performance.now() - started).toBeLessThan(1000)
+    expect(parseShipdotSection(`${'> '.repeat(30_000)}<!-- x -->`)).toBeUndefined()
+  })
 })
 
 describe('pull request titles', () => {
@@ -80,6 +99,16 @@ describe('pull request titles', () => {
     expect(titleFromPr('feat(export): add excel export (#12)')).toBe('Add excel export')
     expect(titleFromPr('fix: handle empty reports.')).toBe('Handle empty reports')
     expect(titleFromPr('Improve onboarding')).toBe('Improve onboarding')
+    expect(titleFromPr('fix:   spaced out   (#7)  ')).toBe('Spaced out')
+  })
+
+  it('handles adversarial titles in linear time', () => {
+    const started = performance.now()
+    // Spaces before a line break: `:\s*(.+)$` retries every split of the whitespace.
+    expect(conventionalType(`a:${' '.repeat(50_000)}x\ny`)).toBeUndefined()
+    titleFromPr(`x${' '.repeat(50_000)}y`)
+    // Takes seconds with a polynomial regex; the bound is loose so slow runners do not flake.
+    expect(performance.now() - started).toBeLessThan(1000)
   })
 
   it('maps types', () => {

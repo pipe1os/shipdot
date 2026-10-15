@@ -44512,6 +44512,40 @@ function summarize(markdown, max = 200) {
 	const text = paragraph ? mdText(paragraph).replace(/\s+/g, " ").trim() : "";
 	return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
 }
+/** Removes the comments from raw HTML: `<!-->` and `<!--->` are empty, unclosed ones run to the end. */
+const stripRawComments = (html) => {
+	let out = "";
+	let from = 0;
+	for (let at = html.indexOf("<!--"); at !== -1; at = html.indexOf("<!--", from)) {
+		out += html.slice(from, at);
+		const empty = html.startsWith(">", at + 4) ? 5 : html.startsWith("->", at + 4) ? 6 : 0;
+		const end = empty ? -1 : html.indexOf("-->", at + 4);
+		from = empty ? at + empty : end === -1 ? html.length : end + 3;
+	}
+	return out + html.slice(from);
+};
+/**
+* Removes HTML comments from Markdown the way GitHub and the widget render it: only raw HTML
+* holds comments, so `<!--` in a code span, a code block or plain text stays, and a comment
+* block that is never closed hides the rest of the document. One parse, linear time.
+*/
+function stripHtmlComments(markdown) {
+	const html = [];
+	const stack = [unified().use(remarkParse).parse(markdown)];
+	for (let node = stack.pop(); node; node = stack.pop()) {
+		const start = node.position?.start.offset;
+		const end = node.position?.end.offset;
+		if (node.type === "html" && start !== void 0 && end !== void 0) html.push([start, end]);
+		for (const child of node.children ?? []) stack.push(child);
+	}
+	let out = "";
+	let from = 0;
+	for (const [start, end] of html.sort((a, b) => a[0] - b[0])) {
+		out += markdown.slice(from, start) + stripRawComments(markdown.slice(start, end));
+		from = end;
+	}
+	return out + markdown.slice(from);
+}
 /** Joins and normalizes POSIX paths. Returns undefined if the result escapes the root. */
 const resolvePath = (dir, ref) => {
 	const out = [];
@@ -44698,7 +44732,7 @@ const TYPE_LABEL = {
 const llmsHeader = (options) => {
 	return `# ${options.name ? `${options.name}: what's new` : "What's new"}\n\n> ${(options.description ?? `Product updates${options.name ? ` for ${options.name}` : ""}, newest first.`).replace(/\s+/g, " ")}\n`;
 };
-const stripComments = (markdown) => markdown.replace(/<!--[\s\S]*?-->/g, "").trim();
+const stripComments = (markdown) => stripHtmlComments(markdown).trim();
 function toLlmsTxt(compiled, options) {
 	const lines = compiled.map(({ entry, markdown }) => {
 		const name = entry.link ? `[${entry.title}](${entry.link})` : entry.title;
@@ -44985,8 +45019,8 @@ const unquote = (value) => value.trim().replace(/^(["'`])(.*)\1$/, "$2").trim();
 */
 function parseShipdotSection(body) {
 	if (!body) return void 0;
-	const text = body.replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?-->/g, "");
-	const heading = /^(#{1,6})[ \t]+shipdot[ \t]*#*[ \t]*$/im.exec(text);
+	const text = stripHtmlComments(body.replace(/\r\n?/g, "\n"));
+	const heading = /^(#{1,6})[ \t]+shipdot[ \t#]*$/im.exec(text);
 	if (!heading) return void 0;
 	const rest = text.slice(heading.index + heading[0].length);
 	const next = new RegExp(`^#{1,${heading[1]?.length}}[ \\t]`, "m").exec(rest);
@@ -45014,14 +45048,14 @@ function parseShipdotSection(body) {
 	section.body = lines.slice(i).join("\n").trim();
 	return section;
 }
-const CONVENTIONAL_RE = /^(\w+)(?:\([^)]*\))?!?:\s*(.+)$/;
+const CONVENTIONAL_RE = /^(\w+)(?:\([^)]*\))?!?:\s*(\S.*)$/;
 /** The conventional commit type of a title (`feat(ui): x` → `feat`), lowercased. */
 function conventionalType(title) {
 	return CONVENTIONAL_RE.exec(title.trim())?.[1]?.toLowerCase();
 }
 /** `feat(export): add excel export (#12)` → `Add excel export` */
 function titleFromPr(title) {
-	const clean = (CONVENTIONAL_RE.exec(title.trim())?.[2] ?? title).replace(/\s*\(#\d+\)\s*$/, "").trim().replace(/\.$/, "");
+	const clean = (CONVENTIONAL_RE.exec(title.trim())?.[2] ?? title).trim().replace(/\(#\d+\)$/, "").trim().replace(/\.$/, "");
 	return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 function typeFromPr(title) {
