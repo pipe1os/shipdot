@@ -1,7 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -150 200 200">
   <title>shipdot</title>
-  <style>:root{--a:#4f46e5}@media (prefers-color-scheme:dark){:root{--a:#a5b4fc}}</style>
-  <circle cx="24" cy="24" r="21" fill="none" stroke="var(--a)" stroke-opacity=".25" stroke-width="3"/>
-  <circle cx="24" cy="24" r="13" fill="none" stroke="var(--a)" stroke-opacity=".5" stroke-width="3.5"/>
-  <circle cx="24" cy="24" r="7" fill="var(--a)"/>
+  <style>path{fill:#0f1724}@media (prefers-color-scheme:dark){path{fill:#f1f3f6}}</style>
+  <path d="M0 -100H36V-77.7A52 52 0 0 0 36 -22.3V45H0ZM124 -145H160V0H124V-22.3A52 52 0 0 0 124 -77.7Z"/>
+  <circle cx="80" cy="-50" r="48" fill="#ee4423"/>
 </svg>
