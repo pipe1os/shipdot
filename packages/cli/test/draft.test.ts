@@ -231,7 +231,9 @@ Reports can now be saved as **PDF**.
     let stdout = ''
     const code = await run(['draft', '--repo', 'acme/app', '--since', '2026-10-01'], {
       cwd: dir,
-      env: {},
+      // With a token in env the CLI never shells out to `gh auth token`, which can block
+      // for seconds on CI runners.
+      env: { GITHUB_TOKEN: 't0ken' },
       fetch,
       stdout: (t) => {
         stdout += t

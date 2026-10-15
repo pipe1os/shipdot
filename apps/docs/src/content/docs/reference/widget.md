@@ -4,7 +4,7 @@ description: Attributes, properties, methods, events, slots, parts and browser s
 ---
 
 ```html
-<script type="module" src="https://unpkg.com/shipdot"></script>
+<script type="module" src="https://unpkg.com/shipdot@0.1"></script>
 <ship-dot src="/shipdot.json"></ship-dot>
 ```
 

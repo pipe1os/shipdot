@@ -36,10 +36,21 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        id: changesets
         with:
-          version: pnpm version-packages
-          publish: pnpm release
-          commit: 'chore: version packages'
-          title: 'chore: version packages'
+          version-script: pnpm version-packages
+          publish-script: pnpm release
+          commit-message: 'chore: version packages'
+          pr-title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # `uses: pipe1os/shipdot@v0` resolves through these tags: `vX.Y.Z` marks the release and
+      # the major tag `vX` moves to it, the usual convention for GitHub Actions.
+      - name: Tag the Action release
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          version="$(node -p "require('./packages/shipdot/package.json').version")"
+          git tag "v$version"
+          git tag --force "v${version%%.*}"
+          git push origin "v$version"
+          git push --force origin "v${version%%.*}"

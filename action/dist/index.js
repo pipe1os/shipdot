@@ -17548,7 +17548,7 @@ function resolveConfig(input) {
 
 //#endregion
 //#region ../packages/cli/package.json
-var version = "0.0.0";
+var version = "0.1.0";
 
 //#endregion
 //#region ../node_modules/.pnpm/@ungap+structured-clone@1.4.0/node_modules/@ungap/structured-clone/esm/deserialize.js

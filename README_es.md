@@ -5,7 +5,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg">
-    <img src=".github/assets/logo-light.svg" alt="shipdot" width="260">
+    <img src=".github/assets/logo-light.svg" alt="shipdot" width="212">
   </picture>
 </p>
 
@@ -24,38 +24,44 @@
 <p align="center">
   <a href="https://pipe1os.github.io/shipdot/">Documentación</a> ·
   <a href="https://pipe1os.github.io/shipdot/playground/">Playground</a> ·
-  <a href="https://pipe1os.github.io/shipdot/getting-started/">Primeros pasos</a>
+  <a href="https://pipe1os.github.io/shipdot/getting-started/">Primeros pasos</a> ·
+  <a href="packages/shipdot/CHANGELOG.md">Registro de cambios</a>
 </p>
 
 <p align="center">
-  <img src=".github/assets/hotspot.png" alt="Un hotspot pulsante sobre el botón Export de una app de demostración, con un tooltip que dice: New, Export to Excel" width="720">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/hero-dark.webp">
+    <img src=".github/assets/hero-light.webp" alt="Una app de analítica de demostración con hotspots pulsantes sobre sus botones Filter y Export y un tooltip que anuncia Export to Excel, junto a la entrada Markdown con target: #btn-export que lo puso ahí" width="100%">
+  </picture>
 </p>
 
 ---
 
 **shipdot** muestra a tus usuarios qué cambió, dentro de tu app: una campana con un contador de no leídos, un panel "What's new" y **hotspots**, puntos pulsantes sobre los botones exactos donde vive una función nueva. Las actualizaciones son archivos Markdown en tu repositorio, redactados a partir de tus pull requests fusionados y revisados como código. No hay servidor, base de datos, cuenta ni rastreo.
 
+> [!NOTE]
+> shipdot es joven (`0.x`). El formato de `shipdot.json` está versionado y es estable; el widget, la CLI y la Action todavía pueden cambiar entre versiones menores. Todos los cambios están en el [registro de cambios](packages/shipdot/CHANGELOG.md).
+
 ## Por qué shipdot
 
-- **Hotspots en la interfaz real.** Una entrada con `target: "#btn-export"` pone un punto en ese botón. Avisar a los usuarios de que existe una función está bien; señalarla es mejor.
+- **Hotspots en la interfaz real.** Una entrada con `target: "#btn-export"` pone un punto pulsante en ese botón. Avisar a los usuarios de que existe una función está bien; señalarla es mejor. Los hotspots siguen a su elemento objetivo al hacer scroll y al cambiar el tamaño, esperan a los elementos que se renderizan tarde en las SPA y se ocultan cuando el objetivo queda oculto.
 - **Nativo de Git, revisado por una persona.** `shipdot draft` convierte los pull requests fusionados en notas escritas para usuarios finales y abre un pull request. Corriges la redacción, haces merge y lanzas.
-- **Varios idiomas desde el primer día.** `entry.es.md` junto a `entry.md`. El widget elige el idioma del usuario y, si falta una traducción, recurre al idioma por defecto sin problemas.
-- **Nada que ejecutar ni pagar por usuario.** Un `shipdot.json` estático y un web component de 6,5 KB. Tus anuncios se quedan en tu repositorio, y los datos de tus usuarios, en su navegador.
+- **Varios idiomas desde el primer día.** `entry.es.md` junto a `entry.md`. El widget elige el idioma del usuario, recurre al idioma por defecto en cada entrada y trae sus textos de interfaz en inglés, español y portugués.
+- **Nada que ejecutar ni pagar por usuario.** Un `shipdot.json` estático y un web component de menos de 7 KB min+gzip. Sin backend ni telemetría: tus anuncios se quedan en tu repositorio, y el estado de lectura, en el navegador de tus usuarios.
 
 ## Funciones
 
-- **Hotspots** que siguen a su elemento objetivo al hacer scroll y al cambiar el tamaño, esperan a los elementos que se renderizan tarde en las SPA y se ocultan cuando el objetivo queda oculto.
 - **Panel de feed** como popover, drawer o modal, con un badge de no leídos.
-- **`shipdot draft`**: modo de plantilla sin conexión, o reescritura y traducción con tu propia clave de LLM (Anthropic o cualquier API compatible con OpenAI).
-- **GitHub Action** que abre un pull request con los borradores cada semana.
-- **i18n**: entradas traducidas, detección de locale, respaldo al idioma por defecto en cada entrada, y textos de interfaz integrados en inglés, español y portugués.
-- **6,5 KB min+gzip**, cero dependencias en tiempo de ejecución, Shadow DOM, verificado en CI.
+- **Borradores a partir de pull requests**: modo de plantilla sin conexión, o reescritura y traducción con tu propia clave de LLM (Anthropic o cualquier API compatible con OpenAI).
+- **GitHub Action** que abre un pull request con los borradores nuevos cada semana.
+- **Cero dependencias en tiempo de ejecución**, Shadow DOM y un límite de 10 KB min+gzip verificado en CI.
 - **Accesible**: navegación por teclado, gestión del foco, contraste WCAG 2.1 AA en temas claro y oscuro, verificado con axe.
-- **Privado por diseño**: sin backend, sin telemetría; el estado de lectura vive en el `localStorage` del usuario.
 - **`llms.txt` y `llms-full.txt`** para que los asistentes de IA sepan qué cambió.
 - **Personalizable** con propiedades personalizadas de CSS, `::part()` y tu propio disparador.
 
 ## Inicio rápido
+
+Necesitas Node.js 24 o superior para la CLI. El widget funciona en cualquier [navegador moderno](#compatibilidad-con-navegadores).
 
 **1. Crea la configuración y una primera entrada**
 
@@ -65,8 +71,9 @@ npx @shipdot/cli init
 
 **2. Escribe las entradas y genera el feed**
 
+Cada novedad es un archivo Markdown en `.shipdot/entries/`, por ejemplo `.shipdot/entries/2026-10-14-export-excel.md`:
+
 ```md
-<!-- .shipdot/entries/2026-10-14-export-excel.md -->
 ---
 date: 2026-10-14
 type: new             # new | improved | fixed
@@ -83,7 +90,7 @@ npx @shipdot/cli build   # → public/shipdot.json, public/llms.txt, public/llms
 **3. Agrega el widget**
 
 ```html
-<script type="module" src="https://unpkg.com/shipdot"></script>
+<script type="module" src="https://unpkg.com/shipdot@0.1"></script>
 <ship-dot src="/shipdot.json"></ship-dot>
 ```
 
@@ -105,6 +112,13 @@ flowchart LR
 El HTML se sanitiza una sola vez, en tiempo de build, con una lista de permitidos estricta, así que el widget se mantiene pequeño y nunca analiza Markdown no confiable. Las decisiones de diseño están en [`docs/adr`](docs/adr).
 
 ## Widget
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/panel-dark.webp">
+    <img src=".github/assets/panel-light.webp" alt="El panel What's new abierto en una app de analítica de demostración, con tres novedades etiquetadas New, Improved y Fixed" width="100%">
+  </picture>
+</p>
 
 ```html
 <ship-dot
@@ -172,7 +186,18 @@ jobs:
           # llm-api-key: ${{ secrets.SHIPDOT_LLM_API_KEY }}
 ```
 
-Parámetros de entrada: `command` (`draft` | `build`), `github-token`, `base-branch`, `llm-provider`, `llm-api-key`, `llm-model`, `llm-base-url`, `working-directory`. Salidas: `entries`, `pull-request-url`, `pull-request-number`. Activa **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests** para que pueda abrir el PR con los borradores. Más en la [guía de GitHub Action](https://pipe1os.github.io/shipdot/guides/github-action/).
+> [!IMPORTANT]
+> Activa **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests** para que la Action pueda abrir el pull request con los borradores.
+
+| Entrada | Por defecto | Descripción |
+| --- | --- | --- |
+| `command` | `draft` | `draft` abre un pull request con los borradores nuevos; `build` escribe `shipdot.json` y `llms.txt`. |
+| `github-token` | `${{ github.token }}` | Token para la API de GitHub. |
+| `base-branch` | config, luego la rama por defecto | Rama en la que se fusionan los pull requests. |
+| `llm-provider`, `llm-api-key`, `llm-model`, `llm-base-url` | — | [Modo LLM](#modo-llm-y-privacidad) opcional. Pasa la clave desde un secret; se oculta en los logs. |
+| `working-directory` | `.` | Carpeta con `shipdot.config.json`. |
+
+Salidas: `entries`, `pull-request-url`, `pull-request-number`. Más en la [guía de GitHub Action](https://pipe1os.github.io/shipdot/guides/github-action/).
 
 ## Escribir notas en pull requests
 
@@ -182,7 +207,7 @@ Agrega una sección `### shipdot` a tu plantilla de PR y la nota la escribe la p
 ### shipdot
 title: Export to Excel
 type: new
-target: #btn-export
+target: "#btn-export"
 
 You can now export any report to Excel with one click.
 ```
