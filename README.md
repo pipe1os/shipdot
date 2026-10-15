@@ -28,7 +28,10 @@
 </p>
 
 <p align="center">
-  <img src=".github/assets/hotspot.png" alt="A pulsing hotspot on the Export button of a demo app, with a tooltip that says: New, Export to Excel" width="720">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/hero-dark.png">
+    <img src=".github/assets/hero-light.png" alt="A demo analytics app with pulsing hotspots on its Filter and Export buttons and a tooltip announcing Export to Excel, next to the Markdown entry with target: #btn-export that put it there" width="100%">
+  </picture>
 </p>
 
 ---
@@ -105,6 +108,13 @@ flowchart LR
 HTML is sanitized once, at build time, with a strict allowlist, so the widget stays tiny and never parses untrusted Markdown. The decisions behind the design are in [`docs/adr`](docs/adr).
 
 ## Widget
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/panel-dark.png">
+    <img src=".github/assets/panel-light.png" alt="The What's new panel open in a demo analytics app, listing three updates tagged New, Improved and Fixed" width="100%">
+  </picture>
+</p>
 
 ```html
 <ship-dot
