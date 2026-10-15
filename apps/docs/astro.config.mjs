@@ -17,8 +17,12 @@ export default defineConfig({
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/pipe1os/shipdot' }],
       editLink: { baseUrl: 'https://github.com/pipe1os/shipdot/edit/main/apps/docs/' },
       lastUpdated: false,
-      // The header shows shipdot's own "What's new" widget (dogfooding).
-      components: { SocialIcons: './src/components/SocialIcons.astro' },
+      // The header shows shipdot's own "What's new" widget (dogfooding); page titles get a
+      // "Copy page" menu that copies the page as Markdown.
+      components: {
+        SocialIcons: './src/components/SocialIcons.astro',
+        PageTitle: './src/components/PageTitle.astro',
+      },
       customCss: ['./src/styles/custom.css'],
       sidebar: [
         {
