@@ -114,6 +114,7 @@ export class ShipDot extends Base {
     if (name === 'src') void this.refresh()
     else if (name === 'storage-key') {
       this.#initialized = false
+      this.#read = new Set()
       void this.refresh()
     } else this.#update()
   }
@@ -141,15 +142,15 @@ export class ShipDot extends Base {
       feed.entries.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
       this.#feed = feed
       this.#url = url
-      const stored = readIds(this.#key())
-      if (stored) this.#read = new Set(stored)
-      else if (!this.#initialized) {
+      // Merge instead of replacing: `markRead()` may have run before the feed loaded.
+      let ids = readIds(this.#key())
+      if (!ids && !this.#initialized) {
         // First visit: existing entries count as read unless first-visit="show-latest".
-        const ids = feed.entries.map((e) => e.id)
+        ids = feed.entries.map((e) => e.id)
         if (this.getAttribute('first-visit') === 'show-latest') ids.shift()
-        this.#read = new Set(ids)
-        this.#save()
       }
+      for (const id of ids ?? []) this.#read.add(id)
+      this.#save()
       this.#initialized = true
       this.#update()
       this.#emit('ready', {
@@ -223,7 +224,7 @@ export class ShipDot extends Base {
     panel.focus()
     this.#btn?.setAttribute('aria-expanded', 'true')
     this.#emit('open', { mode })
-    this.#markRead(unread.map((e) => e.id))
+    this.markRead(unread.map((e) => e.id))
   }
 
   close(): void {
@@ -235,7 +236,20 @@ export class ShipDot extends Base {
 
   /** Marks every entry as read: clears the badge and removes hotspots. */
   markAllRead(): void {
-    this.#markRead(this.entries.map((e) => e.id))
+    this.markRead(this.entries.map((e) => e.id))
+  }
+
+  /**
+   * Marks the entries with these IDs as read, for example IDs your app synced from
+   * another device. Can be called before the feed loads.
+   */
+  markRead(ids: string[]): void {
+    const fresh = ids.filter((id) => !this.#read.has(id))
+    if (!fresh.length) return
+    for (const id of fresh) this.#read.add(id)
+    this.#save()
+    this.#emit('read', { ids: fresh })
+    this.#update()
   }
 
   /** Marks the newest entry as unread again, bringing back its badge and hotspot. */
@@ -262,15 +276,6 @@ export class ShipDot extends Base {
       ;((slot?.assignedElements()[0] as HTMLElement | undefined) ?? this.#btn)?.focus()
     }
     this.#emit('close', { mode: panel.dataset.mode as ShipDotMode })
-  }
-
-  #markRead(ids: string[]): void {
-    const fresh = ids.filter((id) => !this.#read.has(id))
-    if (!fresh.length) return
-    for (const id of fresh) this.#read.add(id)
-    this.#save()
-    this.#emit('read', { ids: fresh })
-    this.#update()
   }
 
   #update(): void {
@@ -322,7 +327,7 @@ export class ShipDot extends Base {
         },
         fixUrls: (el) => this.#fixUrls(el),
         onClick: (id) => this.#emit('hotspot-click', { id }),
-        onRead: (id) => this.#markRead([id]),
+        onRead: (id) => this.markRead([id]),
         onError: (error) => this.#emit('error', { error }),
       })
     }
@@ -377,6 +382,8 @@ export class ShipDot extends Base {
   }
 
   #save(): void {
+    // Before the feed loads every ID would be filtered out, wiping the stored state.
+    if (!this.#feed) return
     const ids = new Set(this.entries.map((e) => e.id))
     writeIds(
       this.#key(),

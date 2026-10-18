@@ -145,7 +145,7 @@ Target: **MVP v0.1.0** (not published).
 - RSS/Atom feed output
 - Publishing to Slack, Discord and email
 - Web admin panel for non-technical editors
-- Syncing read state across devices
+- ~~Syncing read state across devices~~ (done 2026-10-17: `markRead(ids)` + `shipdot:read`, the app stores the IDs)
 - More built-in UI locales
 - "Show me" from the feed: scroll to and highlight an entry's target
 
@@ -155,6 +155,7 @@ Target: **MVP v0.1.0** (not published).
 - **`draft.excludeTypes` instead of "types to include".** Excluding non-user types (`chore`, `ci`, …) keeps PRs with non-conventional titles, which a strict include list would silently drop.
 - **Opening the feed marks every entry as read**, which also removes their hotspots. A separate "read in feed" vs "dismissed hotspot" state would need a second store; deferred (see roadmap "Show me").
 - **No "Mark all as read" button in the panel**: opening already marks everything read; `markAllRead()` stays in the JS API.
+- **Cross-device read state stays in the host app.** shipdot has no backend, so the widget only exposes `markRead(ids)` and the `shipdot:read` event. Read state only grows (there is no public "mark unread" beyond the local `replayLatest()`), so syncing is a set union with no conflicts. Loading the feed merges stored IDs into memory instead of replacing them, because `markRead()` may run first; nothing is written to storage until the feed has loaded.
 - **Explicit Tab wrap-around in drawer/modal.** Chrome lets Tab leave a modal `<dialog>` for the browser UI; the widget wraps focus inside instead.
 - **Framework typings ship as opt-in subpaths** (`shipdot/react`, `shipdot/vue`, `shipdot/svelte`, `shipdot/astro`) so the main types never require React/Vue/Svelte to be installed.
 - **Hotspots use their own color** (`--shipdot-hotspot`, pink by default) instead of the accent, so they stay visible on brand-colored buttons. Tooltips are anchored below the target element, not the dot.
@@ -196,4 +197,5 @@ Target: **MVP v0.1.0** (not published).
 - 2026-10-15 — Logo redesign: new custom wordmark where p and d share one red ball (README, README_es, docs header, favicon); the concentric indigo rings are gone.
 - 2026-10-15 — Post-MVP validation: docs site and playground checked on desktop and phone emulation, a fresh Vite project set up from the published npm packages, and the full `shipdot draft` flow run on this repository (#22 → draft #23 → merged → live in the docs bell). Fixes from it: the `### shipdot` section also ends at a horizontal rule and the PR template puts it above the checklist, so footers that tools append no longer leak into notes; `shipdot init` prints `import 'shipdot'` when the widget is already a dependency; draft pull requests get a Conventional Commits title; the docs bell moved next to the search button so phones see it on every page (one widget per page); the quick start note has Spanish and Portuguese translations. Open: `stripHtmlComments` is quadratic on deeply nested lists and blockquotes (the adversarial test in `packages/cli` takes about 6 s on slow machines).
 - 2026-10-15 — Security: `stripHtmlComments` (`@shipdot/core/compile`) no longer runs the Markdown parser, which was quadratic on nested lists and block quotes (a list nested 4,000 levels deep took 6 s; lazy lines after a deep block quote, minutes). A linear scanner replaces it and gave remark's output on about 1.5 million fuzzed documents (reference links aside, see Notes). Adds a seeded differential test, adversarial tests for nested lists and block quotes, and a rebuilt `action/dist`.
+- 2026-10-17 — Roadmap: read state can sync across devices. `markRead(ids)` is public, so an app with accounts stores the IDs from `shipdot:read` and passes them back; recipe in the widget reference and the FAQ.
 - 2026-10-15 — README images redesigned after the logo: flat ink/paper/signal palette instead of indigo glows, the hero puts the Export hotspot on the seam between the app and its entry file (with `shipdot build` output under it), the panel lines up with the page edge, fonts bundled as devDependencies for reproducible renders.

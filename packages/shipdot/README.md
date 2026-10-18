@@ -26,7 +26,7 @@ npx @shipdot/cli build
 
 `src` (required), `mode` (`popover` | `drawer` | `modal`), `locale`, `theme` (`light` | `dark` | `auto`), `hotspots` (`off` to disable), `max-hotspots`, `first-visit` (`mark-read` | `show-latest`), `storage-key`.
 
-**Methods**: `open()`, `close()`, `markAllRead()`, `replayLatest()`, `refresh()`.
+**Methods**: `open()`, `close()`, `markAllRead()`, `markRead(ids)`, `replayLatest()`, `refresh()`.
 **Events**: `shipdot:ready`, `shipdot:open`, `shipdot:close`, `shipdot:read`, `shipdot:hotspot-click`, `shipdot:error`.
 
 Typings for frameworks: `import type {} from 'shipdot/react'` (also `shipdot/vue`, `shipdot/svelte`, `shipdot/astro`).
