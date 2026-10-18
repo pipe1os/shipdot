@@ -145,7 +145,7 @@ HTML is sanitized once, at build time, with a strict allowlist, so the widget st
 | `first-visit` | `mark-read` | `mark-read` (existing entries count as read) or `show-latest`. |
 | `storage-key` | `default` | Read state key: `localStorage["shipdot:<key>"]`. |
 
-**Methods**: `open()`, `close()`, `markAllRead()`, `replayLatest()`, `refresh()`.
+**Methods**: `open()`, `close()`, `markAllRead()`, `markRead(ids)`, `replayLatest()`, `refresh()`.
 **Events** (bubbling, composed `CustomEvent`s): `shipdot:ready`, `shipdot:open`, `shipdot:close`, `shipdot:read`, `shipdot:hotspot-click`, `shipdot:error`.
 **Styling**: CSS custom properties (`--shipdot-accent`, `--shipdot-hotspot`, `--shipdot-bg`…), `::part()` on every key piece, and a default slot for your own trigger.
 

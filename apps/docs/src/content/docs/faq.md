@@ -35,6 +35,10 @@ About 6.5 KB min+gzip with zero dependencies. CI fails the build above 10 KB.
 
 Yes. Importing `shipdot` on the server is a no-op; the element upgrades in the browser. See the [Next.js guide](/shipdot/frameworks/next/).
 
+## Can read state follow a user across devices?
+
+Yes, if your app has user accounts: store the IDs from the `shipdot:read` event on your server and pass them back with `markRead(ids)`. See [Syncing read state across devices](/shipdot/reference/widget/#syncing-read-state-across-devices).
+
 ## Can I have two widgets with different feeds?
 
 Yes. Give each one its own `storage-key` so their read states don't mix.

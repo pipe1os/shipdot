@@ -37,10 +37,14 @@ function mockFeed(body: unknown = feed, status = 200) {
   return fetchMock
 }
 
-async function mount(attrs: Record<string, string> = {}): Promise<ShipDot> {
+async function mount(
+  attrs: Record<string, string> = {},
+  setup?: (el: ShipDot) => void,
+): Promise<ShipDot> {
   const el = document.createElement('ship-dot')
   for (const [name, value] of Object.entries({ src: '/data/shipdot.json', ...attrs }))
     el.setAttribute(name, value)
+  setup?.(el)
   const ready = new Promise((resolve) => {
     el.addEventListener('shipdot:ready', resolve, { once: true })
     el.addEventListener('shipdot:error', resolve, { once: true })
@@ -238,6 +242,43 @@ describe('<ship-dot>', () => {
     el.replayLatest()
     expect(el.unread.map((e) => e.id)).toEqual(['export'])
     expect(readIds('shipdot:default')).toEqual(['search', 'bug'])
+  })
+
+  it('marks entries read by ID, also before the feed loads', async () => {
+    writeIds('shipdot:default', [])
+    mockFeed()
+    const events: string[][] = []
+    const el = await mount({ hotspots: 'off' }, (el) => {
+      el.addEventListener('shipdot:read', (e) =>
+        events.push((e as ShipDotEventMap['shipdot:read']).detail.ids),
+      )
+      el.markRead(['search'])
+    })
+    expect(el.unread.map((e) => e.id)).toEqual(['export', 'bug'])
+    expect(readIds('shipdot:default')).toEqual(['search'])
+    el.markRead(['search', 'bug'])
+    expect(el.unread.map((e) => e.id)).toEqual(['export'])
+    expect(readIds('shipdot:default')).toEqual(['search', 'bug'])
+    expect(events).toEqual([['search'], ['bug']])
+  })
+
+  it('still applies first-visit when IDs arrive before the feed', async () => {
+    mockFeed()
+    const el = await mount({ 'first-visit': 'show-latest' }, (el) => el.markRead(['export']))
+    expect(el.unread).toEqual([])
+    expect(readIds('shipdot:default')).toEqual(['export', 'search', 'bug'])
+  })
+
+  it('does not carry read state over to a new storage-key', async () => {
+    writeIds('shipdot:a', ['export', 'search', 'bug'])
+    writeIds('shipdot:b', [])
+    mockFeed()
+    const el = await mount({ 'storage-key': 'a', hotspots: 'off' })
+    expect(el.unread).toEqual([])
+    const ready = new Promise((resolve) => el.addEventListener('shipdot:ready', resolve))
+    el.setAttribute('storage-key', 'b')
+    await ready
+    expect(el.unread).toHaveLength(3)
   })
 
   it('reports fetch errors and invalid feeds', async () => {

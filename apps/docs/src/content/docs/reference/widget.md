@@ -34,6 +34,7 @@ The element reflects the unread count in `data-unread`.
 | `open()` | Opens the panel and marks every entry as read. |
 | `close()` | Closes the panel and returns focus to the trigger. |
 | `markAllRead()` | Marks every entry as read, clearing the badge and the hotspots. |
+| `markRead(ids)` | Marks the entries with these IDs as read. Works before the feed loads. See [Syncing read state across devices](#syncing-read-state-across-devices). |
 | `replayLatest()` | Marks the newest entry as unread again, bringing back its badge and hotspot. Handy for a "What's new?" link. |
 | `refresh()` | Fetches `src` again and re-renders. Returns a promise. |
 
@@ -70,6 +71,34 @@ document.addEventListener('shipdot:read', (event) => {
 ## Read state and privacy
 
 The IDs of read entries are stored in `localStorage` (only IDs still present in the feed, at most 500). Every access is wrapped in `try/catch`: in private mode, with storage disabled, or in a sandboxed iframe, the widget works the same and keeps read state in memory for the session. Nothing is sent anywhere.
+
+### Syncing read state across devices
+
+Read state lives on one device. If your app has user accounts, it can carry read state between devices on its own: save the IDs from `shipdot:read` and hand them back with `markRead()`.
+
+```html
+<script type="module">
+  await customElements.whenDefined('ship-dot')
+  const widget = document.querySelector('ship-dot')
+
+  // Save what the user reads on this device.
+  widget.addEventListener('shipdot:read', (event) => {
+    fetch('/api/me/shipdot-read', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(event.detail.ids),
+    })
+  })
+
+  // Mark what they read on other devices. This can run before the feed loads.
+  const res = await fetch('/api/me/shipdot-read')
+  if (res.ok) widget.markRead(await res.json())
+</script>
+```
+
+`/api/me/shipdot-read` stands for an endpoint of your own app that adds the posted IDs to a set per user and returns that set. Read state only grows, so merging devices is a union and never conflicts. `shipdot:read` also fires for the IDs you pass to `markRead()` that this device had not read yet; a set ignores the ones it already has. `replayLatest()` only affects the current device.
+
+shipdot itself still sends nothing: the requests above are your app's, to your server.
 
 ## Accessibility
 

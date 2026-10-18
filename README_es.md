@@ -145,7 +145,7 @@ El HTML se sanitiza una sola vez, en tiempo de build, con una lista de permitido
 | `first-visit` | `mark-read` | `mark-read` (las entradas existentes cuentan como leídas) o `show-latest`. |
 | `storage-key` | `default` | Clave del estado de lectura: `localStorage["shipdot:<key>"]`. |
 
-**Métodos**: `open()`, `close()`, `markAllRead()`, `replayLatest()`, `refresh()`.
+**Métodos**: `open()`, `close()`, `markAllRead()`, `markRead(ids)`, `replayLatest()`, `refresh()`.
 **Eventos** (`CustomEvent` que burbujean y atraviesan el Shadow DOM): `shipdot:ready`, `shipdot:open`, `shipdot:close`, `shipdot:read`, `shipdot:hotspot-click`, `shipdot:error`.
 **Estilos**: propiedades personalizadas de CSS (`--shipdot-accent`, `--shipdot-hotspot`, `--shipdot-bg`…), `::part()` en cada pieza clave y un slot por defecto para tu propio disparador.
 
