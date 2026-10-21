@@ -28,8 +28,9 @@ Avoid generated class names (CSS modules, Tailwind utility soup); they change be
 - **Only unread entries** get hotspots. Opening the feed panel marks everything as read, which also removes the dots.
 - At most `max-hotspots` dots are visible at once (default 3), newest first.
 - The dot is **hidden** while its target is not visible: `display: none`, `visibility: hidden`, zero size, or scrolled out of the viewport or out of a scroll container (a sidebar, a pane with `overflow: auto`). When the target is partly scrolled out, the dot sits on the corner that is still visible.
-- It **follows the target** on scroll, resize and layout changes (ResizeObserver plus rAF-throttled scroll and resize listeners).
-- **Late targets** are supported: in single-page apps the element can appear after navigation. A MutationObserver watches the DOM only while some target is still missing, and disconnects as soon as all of them are found.
+- It **follows the target** on scroll, resize and layout changes: a ResizeObserver, scroll and resize listeners, a MutationObserver for content inserted around the target, and `transitionend`/`animationend` for elements that slide into place. All of them share one `requestAnimationFrame`, so the dots are laid out at most once per frame. During a CSS transition the dot moves when the transition ends.
+- **Late targets** are supported: in single-page apps the element can appear after navigation, and the same MutationObserver picks it up.
+- Reading one entry does not rebuild the other dots, so their pulse and an open tooltip are left alone.
 - **Keyboard**: dots are real `<button>`s. Enter opens the tooltip, Esc closes it and returns focus to the dot.
 - **Motion**: with `prefers-reduced-motion: reduce` the pulse animation is replaced by a static ring.
 - An invalid selector dispatches a `shipdot:error` event and is ignored.
