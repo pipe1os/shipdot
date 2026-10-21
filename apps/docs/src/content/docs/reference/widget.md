@@ -36,7 +36,7 @@ The element reflects the unread count in `data-unread`.
 | `markAllRead()` | Marks every entry as read, clearing the badge and the hotspots. |
 | `markRead(ids)` | Marks the entries with these IDs as read. Works before the feed loads. See [Syncing read state across devices](#syncing-read-state-across-devices). |
 | `replayLatest()` | Marks the newest entry as unread again, bringing back its badge and hotspot. Handy for a "What's new?" link. |
-| `refresh()` | Fetches `src` again and re-renders. Returns a promise. |
+| `refresh()` | Fetches `src` again and re-renders. Returns a promise. The widget also calls it when a tab comes back to the foreground 10 minutes or more after the last load, so tabs left open for days see new entries. Requests revalidate with the server (`cache: 'no-cache'`), so an unchanged feed costs a `304`. |
 
 ```js
 const widget = document.querySelector('ship-dot')
