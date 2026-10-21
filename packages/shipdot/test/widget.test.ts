@@ -368,7 +368,9 @@ describe('<ship-dot>', () => {
     const b = await mount({ hotspots: 'off' })
     const other = await mount({ hotspots: 'off', 'storage-key': 'other' })
     const events: string[][] = []
-    b.addEventListener('shipdot:read', (e) => events.push(e.detail.ids))
+    b.addEventListener('shipdot:read', (e) =>
+      events.push((e as ShipDotEventMap['shipdot:read']).detail.ids),
+    )
     a.markRead(['search'])
     await vi.waitFor(() => expect(b.unread.map((e) => e.id)).toEqual(['export', 'bug']))
     expect(badge(b).textContent).toBe('2')

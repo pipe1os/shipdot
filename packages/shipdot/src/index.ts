@@ -393,7 +393,8 @@ export class ShipDot extends Base {
   #owns(): boolean {
     const key = this.#key()
     const owner = owners.get(key)
-    if (this.#connected && (!owner?.#connected || owner.#key() !== key)) owners.set(key, this)
+    const held = owner?.isConnected && owner.#key() === key
+    if (this.#connected && !held) owners.set(key, this)
     return owners.get(key) === this
   }
 
