@@ -360,6 +360,33 @@ describe('<ship-dot>', () => {
     expect(document.querySelector('.shipdot-layer')).not.toBe(layer)
   })
 
+  it('syncs reads between widgets with the same storage key, without a second read event', async () => {
+    writeIds('shipdot:default', [])
+    writeIds('shipdot:other', [])
+    mockFeed()
+    const a = await mount({ hotspots: 'off' })
+    const b = await mount({ hotspots: 'off' })
+    const other = await mount({ hotspots: 'off', 'storage-key': 'other' })
+    const events: string[][] = []
+    b.addEventListener('shipdot:read', (e) => events.push(e.detail.ids))
+    a.markRead(['search'])
+    await vi.waitFor(() => expect(b.unread.map((e) => e.id)).toEqual(['export', 'bug']))
+    expect(badge(b).textContent).toBe('2')
+    expect(other.unread).toHaveLength(3)
+    expect(events).toEqual([])
+  })
+
+  it('draws hotspots once per storage key and hands them over on removal', async () => {
+    writeIds('shipdot:default', [])
+    document.body.innerHTML = '<button id="btn-export">Export</button>'
+    mockFeed()
+    const a = await mount()
+    await mount()
+    expect(document.querySelectorAll('.shipdot-layer')).toHaveLength(1)
+    a.remove()
+    await vi.waitFor(() => expect(document.querySelectorAll('.shipdot-layer')).toHaveLength(1))
+  })
+
   it('does not create hotspots when disabled', async () => {
     writeIds('shipdot:default', [])
     mockFeed()

@@ -72,6 +72,10 @@ document.addEventListener('shipdot:read', (event) => {
 
 The IDs of read entries are stored in `localStorage` (only IDs still present in the feed, at most 500). Every access is wrapped in `try/catch`: in private mode, with storage disabled, or in a sandboxed iframe, the widget works the same and keeps read state in memory for the session. Nothing is sent anywhere.
 
+### Tabs and widgets on the same page
+
+Reads reach every open tab of your site and every other `<ship-dot>` on the page with the same `storage-key`, through a [`BroadcastChannel`](https://developer.mozilla.org/docs/Web/API/BroadcastChannel) named after the key. This works without `localStorage` too and never leaves the browser. Only the widget where the entries were read fires `shipdot:read`, so a sync handler like the one below runs once per read. When two widgets share a key (say, one in the desktop header and one in the mobile menu), only the first one draws hotspots; if it is removed, the other takes over.
+
 ### Syncing read state across devices
 
 Read state lives on one device. If your app has user accounts, it can carry read state between devices on its own: save the IDs from `shipdot:read` and hand them back with `markRead()`.
@@ -96,7 +100,7 @@ Read state lives on one device. If your app has user accounts, it can carry read
 </script>
 ```
 
-`/api/me/shipdot-read` stands for an endpoint of your own app that adds the posted IDs to a set per user and returns that set. Read state only grows, so merging devices is a union and never conflicts. `shipdot:read` also fires for the IDs you pass to `markRead()` that this device had not read yet; a set ignores the ones it already has. `replayLatest()` only affects the current device.
+`/api/me/shipdot-read` stands for an endpoint of your own app that adds the posted IDs to a set per user and returns that set. Read state only grows, so merging devices is a union and never conflicts. `shipdot:read` also fires for the IDs you pass to `markRead()` that this device had not read yet; a set ignores the ones it already has. `replayLatest()` only affects the current widget.
 
 shipdot itself still sends nothing: the requests above are your app's, to your server.
 
