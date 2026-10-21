@@ -323,6 +323,31 @@ describe('<ship-dot>', () => {
     expect(el.entries.map((e) => e.id)).toEqual(['search'])
   })
 
+  it('refetches the feed when the tab comes back after 10 minutes', async () => {
+    const fetchMock = mockFeed()
+    const now = vi.spyOn(Date, 'now').mockReturnValue(1_000_000)
+    const el = await mount({ hotspots: 'off' })
+    expect(fetchMock).toHaveBeenCalledWith(expect.any(URL), { cache: 'no-cache' })
+    const comeBack = (minutes: number) => {
+      now.mockReturnValue(1_000_000 + minutes * 60_000)
+      document.dispatchEvent(new Event('visibilitychange'))
+    }
+    comeBack(5)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    const fresh = { id: 'fresh', date: '2026-10-20', type: 'new', title: 'Fresh', html: '' }
+    fetchMock.mockImplementation(
+      async () => new Response(JSON.stringify({ ...feed, entries: [fresh, ...feed.entries] })),
+    )
+    const ready = new Promise((resolve) =>
+      el.addEventListener('shipdot:ready', resolve, { once: true }),
+    )
+    comeBack(11)
+    await ready
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(el.unread.map((e) => e.id)).toEqual(['fresh'])
+  })
+
   it('sets aria-expanded on a slotted custom trigger', async () => {
     mockFeed()
     const el = await mount({ hotspots: 'off' }, (el) => {

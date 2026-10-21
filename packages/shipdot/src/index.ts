@@ -42,6 +42,9 @@ const esc = (text: string): string =>
 const BELL =
   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>'
 
+/** A tab that comes back after this long fetches `src` again. */
+const REFRESH_MS = 10 * 60_000
+
 /** The widget that draws hotspots for each storage key, so two widgets on a page don't both. */
 const owners = new Map<string, ShipDot>()
 
@@ -78,6 +81,12 @@ export class ShipDot extends Base {
   #spotsKey = ''
   #run = 0
   #channel: BroadcastChannel | undefined
+  /** When `src` last loaded, for refetching in tabs left open for days. */
+  #fetchedAt = 0
+  readonly #onVisible = (): void => {
+    if (document.visibilityState === 'visible' && Date.now() - this.#fetchedAt > REFRESH_MS)
+      void this.refresh()
+  }
   readonly #onKey = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') this.#closed(true)
   }
@@ -110,12 +119,14 @@ export class ShipDot extends Base {
         this.#isOpen ? this.close() : this.open()
     }
     this.#listen()
+    document.addEventListener('visibilitychange', this.#onVisible)
     if (this.#feed) this.#update()
     else void this.refresh()
   }
 
   disconnectedCallback(): void {
     this.#connected = false
+    document.removeEventListener('visibilitychange', this.#onVisible)
     this.close()
     this.#spots?.destroy()
     this.#spots = undefined
@@ -155,7 +166,8 @@ export class ShipDot extends Base {
     const run = ++this.#run
     try {
       const url = new URL(src, document.baseURI)
-      const res = await fetch(url)
+      // Revalidate instead of reusing a cached copy: a tab that comes back wants new entries.
+      const res = await fetch(url, { cache: 'no-cache' })
       if (!res.ok) throw new Error(`could not load ${url} (${res.status})`)
       const feed = (await res.json()) as Feed
       // A newer refresh() started meanwhile (for example `src` changed): its feed wins.
@@ -165,6 +177,7 @@ export class ShipDot extends Base {
       feed.entries.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
       this.#feed = feed
       this.#url = url
+      this.#fetchedAt = Date.now()
       // Entry HTML may have changed under the same ID.
       this.#spotsKey = ''
       // Merge instead of replacing: `markRead()` may have run before the feed loaded.
