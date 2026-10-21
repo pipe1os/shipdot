@@ -30,6 +30,18 @@ test.describe('feed panel', () => {
     await expect(trigger(page)).toHaveAccessibleName("What's new")
   })
 
+  test('reading in one tab clears the badge and hotspot in another', async ({ page, context }) => {
+    await page.goto('/')
+    const other = await context.newPage()
+    await other.goto('/')
+    await expect(trigger(other)).toHaveAccessibleName("What's new (1 unread)")
+    await expect(other.getByRole('button', { name: 'New: Export to Excel' })).toBeVisible()
+
+    await trigger(page).click()
+    await expect(trigger(other)).toHaveAccessibleName("What's new")
+    await expect(other.locator('.shipdot-layer')).toHaveCount(0)
+  })
+
   test('first visit with mark-read starts with nothing unread', async ({ page }) => {
     await page.goto('/?first-visit=mark-read')
     await expect(trigger(page)).toHaveAccessibleName("What's new")

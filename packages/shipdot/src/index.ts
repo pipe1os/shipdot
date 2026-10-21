@@ -42,6 +42,9 @@ const esc = (text: string): string =>
 const BELL =
   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>'
 
+/** The widget that draws hotspots for each storage key, so two widgets on a page don't both. */
+const owners = new Map<string, ShipDot>()
+
 // SSR-safe: importing the module on a server must not throw.
 const Base = (globalThis.HTMLElement ?? class {}) as typeof HTMLElement
 
@@ -74,6 +77,7 @@ export class ShipDot extends Base {
   /** What the current hotspot layer was built from, to skip rebuilding an identical one. */
   #spotsKey = ''
   #run = 0
+  #channel: BroadcastChannel | undefined
   readonly #onKey = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') this.#closed(true)
   }
@@ -105,6 +109,7 @@ export class ShipDot extends Base {
       ;(root.querySelector('slot') as HTMLSlotElement).onclick = () =>
         this.#isOpen ? this.close() : this.open()
     }
+    this.#listen()
     if (this.#feed) this.#update()
     else void this.refresh()
   }
@@ -114,6 +119,13 @@ export class ShipDot extends Base {
     this.close()
     this.#spots?.destroy()
     this.#spots = undefined
+    if (owners.get(this.#key()) === this) {
+      owners.delete(this.#key())
+      // Another widget on the page with this key takes the hotspots over.
+      this.#channel?.postMessage([])
+    }
+    this.#channel?.close()
+    this.#channel = undefined
   }
 
   attributeChangedCallback(name: string, old: string | null, value: string | null): void {
@@ -122,6 +134,7 @@ export class ShipDot extends Base {
     else if (name === 'storage-key') {
       this.#initialized = false
       this.#read = new Set()
+      this.#listen()
       void this.refresh()
     } else this.#update()
   }
@@ -263,6 +276,7 @@ export class ShipDot extends Base {
     if (!fresh.length) return
     for (const id of fresh) this.#read.add(id)
     this.#save()
+    this.#channel?.postMessage(fresh)
     this.#emit('read', { ids: fresh })
     this.#update()
   }
@@ -321,7 +335,7 @@ export class ShipDot extends Base {
     this.dataset.unread = String(count)
 
     const spots: Spot[] =
-      this.getAttribute('hotspots') === 'off'
+      this.getAttribute('hotspots') === 'off' || !this.#owns()
         ? []
         : this.unread
             .filter((e) => e.target)
@@ -354,6 +368,34 @@ export class ShipDot extends Base {
         onError: (error) => this.#emit('error', { error }),
       })
     }
+  }
+
+  /**
+   * Other tabs and other widgets on this page with the same storage key hear about reads,
+   * also when `localStorage` is unavailable.
+   */
+  #listen(): void {
+    this.#channel?.close()
+    this.#channel = undefined
+    if (typeof BroadcastChannel === 'undefined') return
+    const channel = new BroadcastChannel(this.#key())
+    // No `shipdot:read` here: the widget where the entries were read already reported them.
+    channel.onmessage = (e: MessageEvent) => {
+      if (!Array.isArray(e.data)) return
+      for (const id of e.data) if (typeof id === 'string') this.#read.add(id)
+      this.#save()
+      this.#update()
+    }
+    this.#channel = channel
+  }
+
+  /** Claims the hotspots for this storage key when no connected widget has them. */
+  #owns(): boolean {
+    const key = this.#key()
+    const owner = owners.get(key)
+    const held = owner?.isConnected && owner.#key() === key
+    if (this.#connected && !held) owners.set(key, this)
+    return owners.get(key) === this
   }
 
   #text(e: FeedEntry): { title: string; html: string } {

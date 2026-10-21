@@ -41,7 +41,7 @@ Yes, if your app has user accounts: store the IDs from the `shipdot:read` event 
 
 ## Can I have two widgets with different feeds?
 
-Yes. Give each one its own `storage-key` so their read states don't mix.
+Yes. Give each one its own `storage-key` so their read states don't mix. Widgets that show the same feed (a desktop header and a mobile menu, say) can share a key: reads in one clear the other, and hotspots are drawn once.
 
 ## Which browsers are supported?
 
