@@ -103,9 +103,12 @@ export class ShipDot extends Base {
     const above = r.top - 24
     const up = panel.scrollHeight > below && above > below
     panel.style.maxHeight = `${Math.max(0, Math.min(560, up ? above : below))}px`
-    const top = up ? r.top - 8 - panel.offsetHeight : r.bottom + 8
     panel.style.left = `${Math.round(Math.max(8, Math.min(r.right - width, innerWidth - width - 8)))}px`
-    panel.style.top = `${Math.round(top)}px`
+    // Above: anchor the bottom edge, so content that grows later (images loading) grows upwards.
+    panel.style.top = up ? 'auto' : `${Math.round(r.bottom + 8)}px`
+    panel.style.bottom = up
+      ? `${Math.round(document.documentElement.clientHeight - r.top + 8)}px`
+      : 'auto'
   }
 
   connectedCallback(): void {
