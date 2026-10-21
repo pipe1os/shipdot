@@ -207,6 +207,11 @@ export class ShipDot extends Base {
       if (mode === 'popover') {
         el.setAttribute('role', 'dialog')
         el.popover = 'manual'
+        // Tabbing out of the non-modal popover closes it, leaving focus where it went.
+        el.addEventListener('focusout', (e) => {
+          const to = (e as FocusEvent).relatedTarget as Node | null
+          if (to && !this.contains(to) && !root.contains(to)) this.#closed(false)
+        })
       }
       el.addEventListener('close', () => this.#closed(true))
       // A click on the dialog itself (not its content) is a click on the backdrop.
