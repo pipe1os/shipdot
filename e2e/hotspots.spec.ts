@@ -43,6 +43,7 @@ test('tooltip: opens on click, "Got it" marks read and survives reloads', async 
   await expect(tooltip).toBeVisible()
   await expect(tooltip).toContainText('with one click')
   expect(clicks).toEqual(['2026-10-14-export-excel'])
+  await tooltip.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)))
 
   const axe = await new AxeBuilder({ page })
     .include('.shipdot-layer')
@@ -81,6 +82,17 @@ test('stays hidden while the target is not visible', async ({ page }) => {
     const button = document.querySelector<HTMLElement>('#btn-export')
     if (button) button.style.display = ''
   })
+  await expect(hotspot(page)).toBeVisible()
+  await expectOverTarget(page)
+})
+
+test('hides when the target scrolls out of an inner scroll container', async ({ page }) => {
+  await page.goto('/?pane=1')
+  await expect(hotspot(page)).toBeVisible()
+  await expectOverTarget(page)
+  await page.locator('#pane').evaluate((pane) => pane.scrollTo(0, 150))
+  await expect(hotspot(page)).toBeHidden()
+  await page.locator('#pane').evaluate((pane) => pane.scrollTo(0, 0))
   await expect(hotspot(page)).toBeVisible()
   await expectOverTarget(page)
 })

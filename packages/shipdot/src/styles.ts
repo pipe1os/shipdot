@@ -22,7 +22,9 @@ const CONTENT = `:host([theme=light]){color-scheme:light}:host([theme=dark]){col
 .b pre{overflow:auto;padding:8px;border-radius:8px;background:color-mix(in srgb,var(--_fg) 8%,transparent)}
 .b pre code{padding:0;background:none}
 .b img,.img{display:block;max-width:100%;height:auto;margin:8px 0;border-radius:8px}
-.more{display:inline-block;margin-top:8px}`
+.more{display:inline-block;margin-top:8px}
+@media (prefers-reduced-motion:no-preference){.popover:popover-open,.modal[open],.tip{animation:sd-f .15s ease-out}}
+@keyframes sd-f{from{opacity:0;scale:.97}}`
 
 export const HOST_CSS: string = `:host{${VARS};display:inline-block;position:relative}${CONTENT}
 .trigger{all:unset;position:relative;display:inline-grid;place-items:center;box-sizing:border-box;width:var(--shipdot-trigger-size,40px);height:var(--shipdot-trigger-size,40px);border-radius:50%;cursor:pointer}

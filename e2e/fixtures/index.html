@@ -25,8 +25,21 @@
       <p>Bottom of the page</p>
     </main>
     <script type="module">
-      // Test knobs: ?mode=&locale=&theme=&first-visit=&hotspots=&late=1&no-target=1&hidden=1
+      // Test knobs: ?mode=&locale=&theme=&first-visit=&hotspots=&late=1&no-target=1&hidden=1&pane=1&bottom=1
       const params = new URLSearchParams(location.search)
+      // pane=1: the export row lives in a scroll container. bottom=1: the bell sits in a footer.
+      if (params.has('pane')) {
+        const pane = document.createElement('div')
+        pane.id = 'pane'
+        pane.style.cssText = 'height:200px;margin-top:300px;overflow:auto;border:1px solid #e4e4e7'
+        pane.innerHTML = '<div style="height:600px"></div>'
+        pane.prepend(document.querySelector('#export-row'))
+        document.querySelector('main').prepend(pane)
+      }
+      if (params.has('bottom')) {
+        const slot = document.querySelector('#widget-slot')
+        slot.style.cssText = 'position:fixed;right:16px;bottom:8px'
+      }
       const addExport = () => {
         const button = document.createElement('button')
         button.type = 'button'

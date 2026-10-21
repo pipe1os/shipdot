@@ -295,6 +295,47 @@ describe('<ship-dot>', () => {
     expect(errors[1]).toMatch(/is not a shipdot.json v1 feed/)
   })
 
+  it('keeps the feed of the latest src when an older request finishes last', async () => {
+    let releaseOld = () => {}
+    const old = new Promise<void>((resolve) => {
+      releaseOld = resolve
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: URL) => {
+        if (url.pathname === '/old.json') {
+          await old
+          return new Response(JSON.stringify(feed))
+        }
+        return new Response(JSON.stringify({ ...feed, entries: [feed.entries[1]] }))
+      }),
+    )
+    const el = document.createElement('ship-dot')
+    el.setAttribute('src', '/old.json')
+    document.body.append(el)
+    const ready = new Promise((resolve) =>
+      el.addEventListener('shipdot:ready', resolve, { once: true }),
+    )
+    el.setAttribute('src', '/new.json')
+    await ready
+    releaseOld()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(el.entries.map((e) => e.id)).toEqual(['search'])
+  })
+
+  it('sets aria-expanded on a slotted custom trigger', async () => {
+    mockFeed()
+    const el = await mount({ hotspots: 'off' }, (el) => {
+      el.innerHTML = '<button type="button">Updates</button>'
+    })
+    const custom = el.querySelector('button') as HTMLButtonElement
+    el.open()
+    expect(custom.getAttribute('aria-expanded')).toBe('true')
+    expect(custom.getAttribute('aria-haspopup')).toBe('dialog')
+    el.close()
+    expect(custom.getAttribute('aria-expanded')).toBe('false')
+  })
+
   it('creates hotspots for unread entries with a target', async () => {
     writeIds('shipdot:default', ['search', 'bug'])
     document.body.innerHTML = '<button id="btn-export">Export</button>'

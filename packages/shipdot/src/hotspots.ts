@@ -25,11 +25,31 @@ export interface HotspotOptions {
 
 interface Live extends Spot {
   el: Element | null
+  /** Ancestors that clip `el`. */
+  clips: Element[]
   btn: HTMLButtonElement
   bad?: boolean
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(n, max))
+
+/**
+ * Scroll containers and other `overflow` ancestors of `el`, so a target scrolled out of an
+ * inner pane loses its dot. `<body>` and `<html>` are left out: their overflow usually
+ * applies to the viewport, which is checked anyway.
+ */
+function clipsOf(el: Element): Element[] {
+  const clips: Element[] = []
+  let node = el
+  // Ancestor overflow does not clip fixed elements.
+  while (getComputedStyle(node).position !== 'fixed') {
+    const parent = node.parentElement
+    if (!parent || parent === document.body || parent === document.documentElement) break
+    if (getComputedStyle(parent).overflow !== 'visible') clips.push(parent)
+    node = parent
+  }
+  return clips
+}
 
 /**
  * Pulsing dots over the real UI elements that unread entries point at. They live in their
@@ -65,7 +85,7 @@ export class Hotspots {
     this.#root.innerHTML = `<style>${LAYER_CSS}</style>`
     this.#spots = spots.map((spot) => {
       const btn = document.createElement('button')
-      const live: Live = { ...spot, el: null, btn }
+      const live: Live = { ...spot, el: null, clips: [], btn }
       btn.type = 'button'
       btn.className = 'dot'
       btn.hidden = true
@@ -127,7 +147,10 @@ export class Hotspots {
       if (spot.bad) continue
       if (!spot.el?.isConnected) {
         spot.el = this.#find(spot)
-        if (spot.el) this.#ro.observe(spot.el)
+        if (spot.el) {
+          this.#ro.observe(spot.el)
+          spot.clips = clipsOf(spot.el)
+        }
       }
       const el = spot.el
       if (!el) {
@@ -136,20 +159,29 @@ export class Hotspots {
         continue
       }
       const r = el.getBoundingClientRect()
+      // The part of the target that is not clipped by a scroll container.
+      let { top, right, bottom, left } = r
+      for (const clip of spot.clips) {
+        const c = clip.getBoundingClientRect()
+        top = Math.max(top, c.top)
+        right = Math.min(right, c.right)
+        bottom = Math.min(bottom, c.bottom)
+        left = Math.max(left, c.left)
+      }
       const visible =
         shown < this.#o.max &&
         r.width > 0 &&
         r.height > 0 &&
-        r.bottom > 0 &&
-        r.right > 0 &&
-        r.top < innerHeight &&
-        r.left < innerWidth &&
+        bottom > Math.max(top, 0) &&
+        right > Math.max(left, 0) &&
+        top < innerHeight &&
+        left < innerWidth &&
         el.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) !== false
       spot.btn.hidden = !visible
       if (visible) {
         shown++
-        const x = clamp(r.right - 12, 0, innerWidth - 24)
-        const y = clamp(r.top - 12, 0, innerHeight - 24)
+        const x = clamp(right - 12, 0, innerWidth - 24)
+        const y = clamp(top - 12, 0, innerHeight - 24)
         spot.btn.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`
       }
     }

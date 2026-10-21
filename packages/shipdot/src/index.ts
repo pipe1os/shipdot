@@ -71,6 +71,7 @@ export class ShipDot extends Base {
   #locale = 'en'
   #strings: Strings = stringsFor('en')
   #spots: Hotspots | undefined
+  #run = 0
   readonly #onKey = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') this.#closed(true)
   }
@@ -82,10 +83,14 @@ export class ShipDot extends Base {
     if (panel?.localName !== 'div') return
     const r = this.getBoundingClientRect()
     const width = panel.offsetWidth
-    const top = Math.round(r.bottom + 8)
+    // Below the trigger, or above it when it does not fit and there is more room there.
+    const below = innerHeight - r.bottom - 24
+    const above = r.top - 24
+    const up = panel.scrollHeight > below && above > below
+    panel.style.maxHeight = `${Math.max(0, Math.min(560, up ? above : below))}px`
+    const top = up ? r.top - 8 - panel.offsetHeight : r.bottom + 8
     panel.style.left = `${Math.round(Math.max(8, Math.min(r.right - width, innerWidth - width - 8)))}px`
-    panel.style.top = `${top}px`
-    panel.style.maxHeight = `min(560px, calc(100vh - ${top + 16}px))`
+    panel.style.top = `${Math.round(top)}px`
   }
 
   connectedCallback(): void {
@@ -132,11 +137,14 @@ export class ShipDot extends Base {
   async refresh(): Promise<void> {
     const src = this.getAttribute('src')
     if (!src) return
+    const run = ++this.#run
     try {
       const url = new URL(src, document.baseURI)
       const res = await fetch(url)
       if (!res.ok) throw new Error(`could not load ${url} (${res.status})`)
       const feed = (await res.json()) as Feed
+      // A newer refresh() started meanwhile (for example `src` changed): its feed wins.
+      if (run !== this.#run) return
       if (feed?.version !== 1 || !Array.isArray(feed.entries))
         throw new Error(`${url} is not a shipdot.json v1 feed`)
       feed.entries.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
@@ -159,6 +167,7 @@ export class ShipDot extends Base {
         locale: this.#locale,
       })
     } catch (error) {
+      if (run !== this.#run) return
       this.#emit('error', { error: error as Error })
       console.warn('[shipdot]', error)
     }
@@ -219,10 +228,12 @@ export class ShipDot extends Base {
       document.addEventListener('keydown', this.#onKey)
       document.addEventListener('pointerdown', this.#onDown, true)
       addEventListener('resize', this.#place)
-      addEventListener('scroll', this.#place, true)
+      addEventListener('scroll', this.#place, { capture: true, passive: true })
     } else (panel as HTMLDialogElement).showModal()
     panel.focus()
-    this.#btn?.setAttribute('aria-expanded', 'true')
+    const trigger = this.#trigger()
+    trigger?.setAttribute('aria-haspopup', 'dialog')
+    trigger?.setAttribute('aria-expanded', 'true')
     this.#emit('open', { mode })
     this.markRead(unread.map((e) => e.id))
   }
@@ -270,12 +281,16 @@ export class ShipDot extends Base {
     document.removeEventListener('pointerdown', this.#onDown, true)
     removeEventListener('resize', this.#place)
     removeEventListener('scroll', this.#place, true)
-    this.#btn?.setAttribute('aria-expanded', 'false')
-    if (focusTrigger) {
-      const slot = this.#root?.querySelector('slot')
-      ;((slot?.assignedElements()[0] as HTMLElement | undefined) ?? this.#btn)?.focus()
-    }
+    const trigger = this.#trigger()
+    trigger?.setAttribute('aria-expanded', 'false')
+    if (focusTrigger) trigger?.focus()
     this.#emit('close', { mode: panel.dataset.mode as ShipDotMode })
+  }
+
+  /** The slotted custom trigger, or the built-in bell. */
+  #trigger(): HTMLElement | undefined {
+    const slot = this.#root?.querySelector('slot')
+    return (slot?.assignedElements()[0] as HTMLElement | undefined) ?? this.#btn
   }
 
   #update(): void {
