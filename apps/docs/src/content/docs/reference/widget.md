@@ -107,7 +107,7 @@ shipdot itself still sends nothing: the requests above are your app's, to your s
 ## Accessibility
 
 - The trigger is a `<button>` whose accessible name includes the unread count ("What's new (2 unread)"), with `aria-expanded` and `aria-haspopup="dialog"`.
-- The panel is a labeled dialog. Drawer and modal use a native modal `<dialog>`: focus is trapped inside, Esc closes it, and focus returns to the trigger. The popover closes on Esc or an outside click.
+- The panel is a labeled dialog. Drawer and modal use a native modal `<dialog>`: focus is trapped inside, Esc closes it, and focus returns to the trigger. The popover closes on Esc, an outside click, or when Tab moves focus out of it (focus stays where it went).
 - Unread entries are announced with visually hidden text, not only by color.
 - Hotspots are keyboard-reachable buttons; tooltips are labeled dialogs.
 - Both themes meet WCAG 2.1 AA contrast. axe runs on every panel mode and theme in CI.

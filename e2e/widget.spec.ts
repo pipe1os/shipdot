@@ -42,6 +42,21 @@ test.describe('feed panel', () => {
     await expect(other.locator('.shipdot-layer')).toHaveCount(0)
   })
 
+  test('popover: closes when focus tabs out of it, without moving focus', async ({ page }) => {
+    await page.goto('/?hotspots=off')
+    await trigger(page).focus()
+    await page.keyboard.press('Enter')
+    await expect(panel(page)).toBeVisible()
+    const share = page.locator('#btn-share')
+    for (let i = 0; i < 10 && !(await share.evaluate((el) => el === document.activeElement)); i++) {
+      await expect(panel(page)).toBeVisible()
+      await page.keyboard.press('Tab')
+    }
+    await expect(share).toBeFocused()
+    await expect(panel(page)).toBeHidden()
+    await expect(trigger(page)).toHaveAttribute('aria-expanded', 'false')
+  })
+
   test('first visit with mark-read starts with nothing unread', async ({ page }) => {
     await page.goto('/?first-visit=mark-read')
     await expect(trigger(page)).toHaveAccessibleName("What's new")
