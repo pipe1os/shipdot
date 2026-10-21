@@ -63,11 +63,10 @@ export class Hotspots {
   readonly #spots: Live[]
   readonly #ro = new ResizeObserver(() => this.#schedule())
   readonly #mo = new MutationObserver(() => this.#schedule())
-  #watching = false
   #raf = 0
   #tip: HTMLElement | undefined
   #tipSpot: Live | undefined
-  readonly #onScroll = (): void => this.#schedule()
+  readonly #onChange = (): void => this.#schedule()
   readonly #onDown = (e: Event): void => {
     if (this.#tip && !e.composedPath().includes(this.#layer)) this.#closeTip(false)
   }
@@ -106,10 +105,17 @@ export class Hotspots {
       return live
     })
     document.body.append(layer)
-    addEventListener('scroll', this.#onScroll, { capture: true, passive: true })
-    addEventListener('resize', this.#onScroll, { passive: true })
+    addEventListener('scroll', this.#onChange, { capture: true, passive: true })
+    addEventListener('resize', this.#onChange, { passive: true })
+    // ponytail: the dot snaps into place when a transition or animation ends, not during it.
+    // Follow every frame between `transitionrun` and `transitionend` if that ever looks off.
+    addEventListener('transitionend', this.#onChange, true)
+    addEventListener('animationend', this.#onChange, true)
     document.addEventListener('pointerdown', this.#onDown, true)
     this.#ro.observe(document.documentElement)
+    // Targets move without resizing when content is inserted above them, and render late in
+    // SPAs. Every DOM change schedules one layout per frame at most.
+    this.#mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true })
     this.#layout()
   }
 
@@ -117,8 +123,10 @@ export class Hotspots {
     cancelAnimationFrame(this.#raf)
     this.#ro.disconnect()
     this.#mo.disconnect()
-    removeEventListener('scroll', this.#onScroll, true)
-    removeEventListener('resize', this.#onScroll)
+    removeEventListener('scroll', this.#onChange, true)
+    removeEventListener('resize', this.#onChange)
+    removeEventListener('transitionend', this.#onChange, true)
+    removeEventListener('animationend', this.#onChange, true)
     document.removeEventListener('pointerdown', this.#onDown, true)
     this.#layer.remove()
   }
@@ -142,7 +150,6 @@ export class Hotspots {
 
   #layout(): void {
     let shown = 0
-    let pending = false
     for (const spot of this.#spots) {
       if (spot.bad) continue
       if (!spot.el?.isConnected) {
@@ -154,7 +161,6 @@ export class Hotspots {
       }
       const el = spot.el
       if (!el) {
-        pending = !spot.bad || pending
         spot.btn.hidden = true
         continue
       }
@@ -184,18 +190,6 @@ export class Hotspots {
         const y = clamp(top - 12, 0, innerHeight - 24)
         spot.btn.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`
       }
-    }
-    // Only watch the DOM while some target has not shown up yet (SPAs render late).
-    if (pending !== this.#watching) {
-      this.#watching = pending
-      if (pending)
-        this.#mo.observe(document.documentElement, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ['id', 'class'],
-        })
-      else this.#mo.disconnect()
     }
     this.#placeTip()
   }

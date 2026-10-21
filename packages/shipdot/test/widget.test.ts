@@ -348,6 +348,18 @@ describe('<ship-dot>', () => {
     expect(document.querySelector('.shipdot-layer')).toBeNull()
   })
 
+  it('keeps the hotspot layer when an entry without a target is read', async () => {
+    writeIds('shipdot:default', [])
+    document.body.innerHTML = '<button id="btn-export">Export</button>'
+    mockFeed()
+    const el = await mount()
+    const layer = document.querySelector('.shipdot-layer')
+    el.markRead(['search'])
+    expect(document.querySelector('.shipdot-layer')).toBe(layer)
+    el.setAttribute('locale', 'es')
+    expect(document.querySelector('.shipdot-layer')).not.toBe(layer)
+  })
+
   it('does not create hotspots when disabled', async () => {
     writeIds('shipdot:default', [])
     mockFeed()

@@ -71,6 +71,8 @@ export class ShipDot extends Base {
   #locale = 'en'
   #strings: Strings = stringsFor('en')
   #spots: Hotspots | undefined
+  /** What the current hotspot layer was built from, to skip rebuilding an identical one. */
+  #spotsKey = ''
   #run = 0
   readonly #onKey = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') this.#closed(true)
@@ -150,6 +152,8 @@ export class ShipDot extends Base {
       feed.entries.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
       this.#feed = feed
       this.#url = url
+      // Entry HTML may have changed under the same ID.
+      this.#spotsKey = ''
       // Merge instead of replacing: `markRead()` may have run before the feed loaded.
       let ids = readIds(this.#key())
       if (!ids && !this.#initialized) {
@@ -316,8 +320,6 @@ export class ShipDot extends Base {
     )
     this.dataset.unread = String(count)
 
-    this.#spots?.destroy()
-    this.#spots = undefined
     const spots: Spot[] =
       this.getAttribute('hotspots') === 'off'
         ? []
@@ -329,8 +331,14 @@ export class ShipDot extends Base {
               type: e.type,
               title: this.#text(e).title,
             }))
+    const max = Number.parseInt(this.getAttribute('max-hotspots') ?? '', 10)
+    // Rebuilding restarts every pulse and closes an open tooltip, so only do it on a change.
+    const key = JSON.stringify([spots, this.#locale, this.getAttribute('theme'), max])
+    if (this.#spots && key === this.#spotsKey) return
+    this.#spots?.destroy()
+    this.#spots = undefined
+    this.#spotsKey = key
     if (spots.length && this.#connected) {
-      const max = Number.parseInt(this.getAttribute('max-hotspots') ?? '', 10)
       this.#spots = new Hotspots(spots, {
         host: this,
         max: Number.isNaN(max) ? 3 : max,

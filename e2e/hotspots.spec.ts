@@ -97,6 +97,54 @@ test('hides when the target scrolls out of an inner scroll container', async ({ 
   await expectOverTarget(page)
 })
 
+test('follows a target that moves without scrolling or resizing', async ({ page }) => {
+  await page.goto('/?pane=1')
+  await expect(hotspot(page)).toBeVisible()
+  // Content inserted above the target inside a fixed-height pane: nothing scrolls or resizes.
+  await page.locator('#pane').evaluate((pane) => {
+    const banner = document.createElement('p')
+    banner.style.cssText = 'height:40px;margin:0'
+    pane.prepend(banner)
+  })
+  await expect
+    .poll(() =>
+      expectOverTarget(page).then(
+        () => true,
+        () => false,
+      ),
+    )
+    .toBe(true)
+  // A CSS transition moves it again.
+  await exportButton(page).evaluate((button) => {
+    button.style.transition = 'margin-left .1s'
+    button.style.marginLeft = '80px'
+  })
+  await expect
+    .poll(() =>
+      expectOverTarget(page).then(
+        () => true,
+        () => false,
+      ),
+    )
+    .toBe(true)
+})
+
+test('an open tooltip survives another entry being read', async ({ page }) => {
+  // Everything unread, so reading the untargeted entries changes the read state.
+  await page.addInitScript(() => localStorage.setItem('shipdot:default', '[]'))
+  await page.goto('/')
+  await hotspot(page).click()
+  const tooltip = page.getByRole('dialog', { name: 'Export to Excel' })
+  await expect(tooltip).toBeVisible()
+  await page
+    .locator('ship-dot')
+    .evaluate((el: HTMLElement & { markRead(ids: string[]): void }) =>
+      el.markRead(['2026-09-01-faster-search']),
+    )
+  await expect(page.getByRole('button', { name: "What's new (2 unread)" })).toBeVisible()
+  await expect(tooltip).toBeVisible()
+})
+
 test('waits for targets rendered later (SPA)', async ({ page }) => {
   await page.goto('/?late=1')
   await expect(hotspot(page)).toBeVisible()
