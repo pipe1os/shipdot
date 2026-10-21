@@ -61,6 +61,17 @@ test.describe('feed panel', () => {
     await expect(panel(page)).toBeHidden()
   })
 
+  test('popover: opens above a trigger near the bottom of the viewport', async ({ page }) => {
+    await page.goto('/?hotspots=off&bottom=1')
+    await trigger(page).click()
+    await expect(panel(page)).toBeVisible()
+    const button = await trigger(page).boundingBox()
+    const box = await panel(page).boundingBox()
+    if (!button || !box) throw new Error('missing boxes')
+    expect(box.y + box.height).toBeLessThanOrEqual(button.y)
+    expect(box.y).toBeGreaterThanOrEqual(0)
+  })
+
   for (const mode of ['drawer', 'modal'] as const) {
     test(`${mode}: traps focus, closes with Esc and the close button`, async ({ page }) => {
       await page.goto(`/?hotspots=off&mode=${mode}`)
@@ -106,6 +117,8 @@ test.describe('accessibility (axe)', () => {
         await page.goto(`/?hotspots=off&mode=${mode}&theme=${theme}`)
         await trigger(page).click()
         await expect(panel(page)).toBeVisible()
+        // Contrast is checked on the final frame, not halfway through the fade-in.
+        await panel(page).evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)))
         const results = await new AxeBuilder({ page })
           .include('ship-dot')
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

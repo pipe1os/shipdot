@@ -88,4 +88,4 @@ Anything you put inside `<ship-dot>` replaces the bell. Clicking it toggles the 
 </style>
 ```
 
-Give your button an accessible name that mentions new updates when there are any.
+Give your button an accessible name that mentions new updates when there are any. The widget sets `aria-haspopup` and `aria-expanded` on it when the panel opens and closes.
