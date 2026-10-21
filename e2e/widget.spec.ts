@@ -99,6 +99,21 @@ test.describe('feed panel', () => {
     expect(box.y).toBeGreaterThanOrEqual(0)
   })
 
+  test('popover: stays above the trigger when its content grows (images loading)', async ({
+    page,
+  }) => {
+    await page.goto('/?hotspots=off&bottom=1')
+    await trigger(page).click()
+    await expect(panel(page)).toBeVisible()
+    await panel(page)
+      .getByRole('list')
+      .evaluate((list) => list.insertAdjacentHTML('beforeend', '<li style="height:120px"></li>'))
+    const button = await trigger(page).boundingBox()
+    const box = await panel(page).boundingBox()
+    if (!button || !box) throw new Error('missing boxes')
+    expect(box.y + box.height).toBeLessThanOrEqual(button.y)
+  })
+
   for (const mode of ['drawer', 'modal'] as const) {
     test(`${mode}: traps focus, closes with Esc and the close button`, async ({ page }) => {
       await page.goto(`/?hotspots=off&mode=${mode}`)

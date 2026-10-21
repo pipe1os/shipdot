@@ -149,6 +149,16 @@ Target: **MVP v0.1.0** (not published).
 - More built-in UI locales
 - "Show me" from the feed: scroll to and highlight an entry's target
 
+### Widget feature backlog
+
+Candidates found while reviewing the widget (2026-10-21). Not covered by open GitHub issues. Each must fit the 10 KB budget.
+
+- [ ] Scheduled entries: entries dated in the future stay hidden until their date (UTC), so teams can merge an announcement before a launch. `shipdot build` must also keep them out of `llms.txt`, or the widget and `llms.txt` disagree.
+- [ ] "Earlier" divider in the feed between unread and read entries, easier to scan than the unread dot alone.
+- [ ] Relative dates ("3 days ago") with `Intl.RelativeTimeFormat`, keeping the absolute date in `<time datetime>` and as a tooltip.
+- [ ] Load-error state: when `src` fails to load, clicking the trigger opens the panel with a short message instead of doing nothing.
+- [ ] Live panel: when `refresh()` brings new entries while the panel is open, re-render it without losing scroll position or focus.
+
 ## Notes and deviations
 
 - **Compile pipeline lives in `@shipdot/core/compile`, not in the CLI.** It is isomorphic (unified + rehype-sanitize + yaml, no Node APIs), so the docs playground runs exactly the same parsing and sanitization as `shipdot build`. The CLI only does file IO. Sanitization still happens at build time, never in the widget.
@@ -204,3 +214,4 @@ Target: **MVP v0.1.0** (not published).
 - 2026-10-21 — Read state syncs across tabs and widgets: a `BroadcastChannel` per storage key carries reads to other tabs and to other `<ship-dot>` elements on the page (also without `localStorage`), without firing `shipdot:read` again. Widgets sharing a key draw hotspots once; the first connected one owns them and hands them over when removed.
 - 2026-10-21 — Popover focus: tabbing out of the popover closes it and leaves focus where it went. Before, it stayed open behind the page and a later Esc pulled focus back to the trigger.
 - 2026-10-21 — Feed refresh: a tab that comes back to the foreground 10 minutes or more after the last load fetches `src` again, and every fetch revalidates (`cache: 'no-cache'`), so tabs left open for days pick up new entries. New entries arrive unread.
+- 2026-10-21 — Placement and theme sync: a popover opened above the trigger is anchored by its bottom edge and the hotspot tooltip is re-placed when it resizes, so images that load late no longer push them over their anchor. The hotspot layer re-copies the host's theme properties after DOM changes (only writing on a change, so it cannot loop), so an app theme switch reaches the dots and tooltip.

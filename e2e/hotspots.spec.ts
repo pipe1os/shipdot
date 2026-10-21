@@ -145,6 +145,43 @@ test('an open tooltip survives another entry being read', async ({ page }) => {
   await expect(tooltip).toBeVisible()
 })
 
+test('a tooltip above its target stays above it when its content grows', async ({ page }) => {
+  await page.goto('/')
+  // Push the target to the bottom of the viewport so the tooltip opens above it.
+  await page.locator('#export-row').evaluate((row) => {
+    row.style.marginTop = `${innerHeight - row.getBoundingClientRect().top - 80}px`
+  })
+  await hotspot(page).click()
+  const tooltip = page.getByRole('dialog', { name: 'Export to Excel' })
+  await expect(tooltip).toBeVisible()
+  // An image in the tooltip finishing loading.
+  await tooltip.evaluate((tip) => tip.insertAdjacentHTML('afterbegin', '<div style="height:80px">'))
+  await expect
+    .poll(async () => {
+      const tip = await tooltip.boundingBox()
+      const target = await exportButton(page).boundingBox()
+      return tip && target && tip.y + tip.height <= target.y
+    })
+    .toBe(true)
+})
+
+test('hotspots follow theme properties the app changes later', async ({ page }) => {
+  await page.addInitScript(() =>
+    document.addEventListener('DOMContentLoaded', () =>
+      document.head.insertAdjacentHTML(
+        'beforeend',
+        '<style>:root{--shipdot-hotspot:rgb(255, 0, 0)}:root.alt{--shipdot-hotspot:rgb(0, 128, 0)}</style>',
+      ),
+    ),
+  )
+  await page.goto('/')
+  const color = () =>
+    hotspot(page).evaluate((el) => getComputedStyle(el, '::before').backgroundColor)
+  await expect.poll(color).toBe('rgb(255, 0, 0)')
+  await page.evaluate(() => document.documentElement.classList.add('alt'))
+  await expect.poll(color).toBe('rgb(0, 128, 0)')
+})
+
 test('waits for targets rendered later (SPA)', async ({ page }) => {
   await page.goto('/?late=1')
   await expect(hotspot(page)).toBeVisible()

@@ -62,8 +62,13 @@ export class Hotspots {
   readonly #root: ShadowRoot = this.#layer.attachShadow({ mode: 'open' })
   readonly #spots: Live[]
   readonly #ro = new ResizeObserver(() => this.#schedule())
-  readonly #mo = new MutationObserver(() => this.#schedule())
+  readonly #mo = new MutationObserver(() => {
+    this.#restyle = true
+    this.#schedule()
+  })
   #raf = 0
+  /** A DOM change may have switched the app's theme (a class on `<html>`, a new stylesheet). */
+  #restyle = true
   #tip: HTMLElement | undefined
   #tipSpot: Live | undefined
   readonly #onChange = (): void => this.#schedule()
@@ -75,12 +80,6 @@ export class Hotspots {
     this.#o = options
     const layer = this.#layer
     layer.className = 'shipdot-layer'
-    const style = getComputedStyle(options.host)
-    layer.style.colorScheme = style.colorScheme
-    for (const name of THEME_PROPS) {
-      const value = style.getPropertyValue(`--shipdot-${name}`)
-      if (value) layer.style.setProperty(`--shipdot-${name}`, value)
-    }
     this.#root.innerHTML = `<style>${LAYER_CSS}</style>`
     this.#spots = spots.map((spot) => {
       const btn = document.createElement('button')
@@ -148,7 +147,22 @@ export class Hotspots {
     }
   }
 
+  /** Copies the host's theme onto the layer, which lives outside `<ship-dot>`. */
+  #theme(): void {
+    const style = getComputedStyle(this.#o.host)
+    const layer = this.#layer.style
+    // Only on a change: writing `style` is itself a mutation, which would schedule another layout.
+    for (const name of ['color-scheme', ...THEME_PROPS.map((p) => `--shipdot-${p}`)]) {
+      const value = style.getPropertyValue(name)
+      if (layer.getPropertyValue(name) !== value) layer.setProperty(name, value)
+    }
+  }
+
   #layout(): void {
+    if (this.#restyle) {
+      this.#restyle = false
+      this.#theme()
+    }
     let shown = 0
     for (const spot of this.#spots) {
       if (spot.bad) continue
@@ -218,6 +232,8 @@ export class Hotspots {
       }
     }
     this.#root.append(tip)
+    // Images that finish loading grow the tooltip: place it again so it never covers the target.
+    this.#ro.observe(tip)
     this.#tip = tip
     this.#tipSpot = spot
     spot.btn.setAttribute('aria-expanded', 'true')
@@ -228,6 +244,7 @@ export class Hotspots {
   #closeTip(focusDot: boolean): void {
     const spot = this.#tipSpot
     if (!spot) return
+    this.#ro.unobserve(this.#tip as HTMLElement)
     this.#tip?.remove()
     this.#tip = this.#tipSpot = undefined
     spot.btn.setAttribute('aria-expanded', 'false')
