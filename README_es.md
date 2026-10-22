@@ -47,7 +47,7 @@
 - **Hotspots en la interfaz real.** Una entrada con `target: "#btn-export"` pone un punto pulsante en ese botón. Avisar a los usuarios de que existe una función está bien; señalarla es mejor. Los hotspots siguen a su elemento objetivo al hacer scroll y al cambiar el tamaño, esperan a los elementos que se renderizan tarde en las SPA y se ocultan cuando el objetivo queda oculto.
 - **Nativo de Git, revisado por una persona.** `shipdot draft` convierte los pull requests fusionados en notas escritas para usuarios finales y abre un pull request. Corriges la redacción, haces merge y lanzas.
 - **Varios idiomas desde el primer día.** `entry.es.md` junto a `entry.md`. El widget elige el idioma del usuario, recurre al idioma por defecto en cada entrada y trae sus textos de interfaz en inglés, español y portugués.
-- **Nada que ejecutar ni pagar por usuario.** Un `shipdot.json` estático y un web component de menos de 7 KB min+gzip. Sin backend ni telemetría: tus anuncios se quedan en tu repositorio, y el estado de lectura, en el navegador de tus usuarios.
+- **Nada que ejecutar ni pagar por usuario.** Un `shipdot.json` estático y un web component de unos 7 KB min+gzip. Sin backend ni telemetría: tus anuncios se quedan en tu repositorio, y el estado de lectura, en el navegador de tus usuarios.
 
 ## Funciones
 
