@@ -37,6 +37,10 @@ const feed = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/shipdot.json`
   }
   ship-dot {
     color: var(--sl-color-text-accent);
+    /* The docs accent (the logo's red) for the badge, links and hotspots, AA in both themes. */
+    --shipdot-accent: var(--sl-color-text-accent);
+    --shipdot-accent-contrast: var(--sl-color-black);
+    --shipdot-hotspot: var(--sl-color-accent);
     /* As tall as the search button on phones. */
     --shipdot-trigger-size: 2.5rem;
   }
