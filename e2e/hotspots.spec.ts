@@ -204,3 +204,15 @@ test('respects prefers-reduced-motion', async ({ page }) => {
   )
   expect(animation).toBe('none')
 })
+
+test('stays visible in forced colors mode (Windows High Contrast)', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' })
+  await page.goto('/')
+  await expect(hotspot(page)).toBeVisible()
+  // Forced colors would otherwise paint the dot with the page background.
+  const [dot, canvas] = await hotspot(page).evaluate((el) => [
+    getComputedStyle(el, '::before').backgroundColor,
+    getComputedStyle(document.body).backgroundColor,
+  ])
+  expect(dot).not.toBe(canvas)
+})

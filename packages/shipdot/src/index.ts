@@ -74,8 +74,15 @@ export class ShipDot extends Base {
   #initialized = false
   #connected = false
   #isOpen = false
+  /** The last load failed and there is no feed: the panel opens with an error message. */
+  #failed = false
+  /** Entries shown as unread since the panel opened, so they keep their dot until it closes. */
+  #fresh = new Set<string>()
+  /** Locale the open panel was rendered in, or '' when the feed changed under it. */
+  #view = ''
   #locale = 'en'
   #strings: Strings = stringsFor('en')
+  #dates: Intl.DateTimeFormat | undefined
   #spots: Hotspots | undefined
   /** What the current hotspot layer was built from, to skip rebuilding an identical one. */
   #spotsKey = ''
@@ -115,7 +122,10 @@ export class ShipDot extends Base {
     this.#connected = true
     if (!this.#root) {
       const root = this.attachShadow({ mode: 'open' })
-      root.innerHTML = `<style>${HOST_CSS}</style><slot><button type="button" class="trigger" part="trigger" aria-haspopup="dialog" aria-expanded="false">${BELL}<span class="badge" part="badge" hidden></span></button></slot>`
+      // Until a feed is there to resolve it against, use the requested locale as is.
+      this.#locale = this.getAttribute('locale') || navigator.language || 'en'
+      this.#strings = stringsFor(this.#locale)
+      root.innerHTML = `<style>${HOST_CSS}</style><slot><button type="button" class="trigger" part="trigger" aria-haspopup="dialog" aria-expanded="false" aria-label="${this.#strings.title}">${BELL}<span class="badge" part="badge" hidden></span></button></slot>`
       this.#root = root
       this.#btn = root.querySelector('button') as HTMLButtonElement
       ;(root.querySelector('slot') as HTMLSlotElement).onclick = () =>
@@ -182,7 +192,7 @@ export class ShipDot extends Base {
       this.#url = url
       this.#fetchedAt = Date.now()
       // Entry HTML may have changed under the same ID.
-      this.#spotsKey = ''
+      this.#spotsKey = this.#view = ''
       // Merge instead of replacing: `markRead()` may have run before the feed loaded.
       let ids = readIds(this.#key())
       if (!ids && !this.#initialized) {
@@ -201,15 +211,17 @@ export class ShipDot extends Base {
       })
     } catch (error) {
       if (run !== this.#run) return
+      this.#failed = true
       this.#emit('error', { error: error as Error })
       console.warn('[shipdot]', error)
     }
   }
 
   open(): void {
-    const feed = this.#feed
     const root = this.#root
-    if (this.#isOpen || !feed || !root) return
+    if (this.#isOpen || !root || !(this.#feed || this.#failed)) return
+    // Retry a feed that failed to load: the open panel fills in if it arrives.
+    if (!this.#feed) void this.refresh()
     const mode = this.#mode()
     let panel = this.#panel
     if (panel?.dataset.mode !== mode) {
@@ -247,18 +259,8 @@ export class ShipDot extends Base {
       root.append(el)
       this.#panel = panel = el
     }
-    const s = this.#strings
-    const unread = this.unread
-    const items = feed.entries
-      .map((e) => {
-        const isUnread = unread.includes(e)
-        return `<li class="e${isUnread ? ' u' : ''}" part="entry"><div class="m">${this.#tag(e)}<time datetime="${esc(e.date)}">${this.#date(e.date)}</time>${isUnread ? `<span class="sr">${s.unreadOne}</span>` : ''}</div><h3 class="h" part="entry-title">${esc(this.#text(e).title)}</h3>${this.#details(e)}</li>`
-      })
-      .join('')
-    panel.lang = this.#locale
-    panel.innerHTML = `<header part="header"><h2 id="sd-t">${s.title}</h2><button type="button" class="x" part="close" aria-label="${s.close}">×</button></header>${items ? `<ul class="l" part="list">${items}</ul>` : `<p class="empty">${s.empty}</p>`}`
-    this.#fixUrls(panel)
-    ;(panel.querySelector('.x') as HTMLButtonElement).onclick = () => this.close()
+    this.#fresh = new Set()
+    this.#render()
     this.#isOpen = true
     if (mode === 'popover') {
       panel.showPopover()
@@ -273,7 +275,7 @@ export class ShipDot extends Base {
     trigger?.setAttribute('aria-haspopup', 'dialog')
     trigger?.setAttribute('aria-expanded', 'true')
     this.#emit('open', { mode })
-    this.markRead(unread.map((e) => e.id))
+    this.markRead([...this.#fresh])
   }
 
   close(): void {
@@ -332,6 +334,40 @@ export class ShipDot extends Base {
     return (slot?.assignedElements()[0] as HTMLElement | undefined) ?? this.#btn
   }
 
+  /** Fills the panel. When it is already open, keeps its scroll position and focus inside it. */
+  #render(): void {
+    const panel = this.#panel as HTMLElement
+    const root = this.#root as ShadowRoot
+    const s = this.#strings
+    const entries = this.entries
+    for (const e of this.unread) this.#fresh.add(e.id)
+    // Read entries below the unread ones get an "Earlier" divider.
+    const split = entries.findIndex((e) => !this.#fresh.has(e.id))
+    this.#dates = undefined
+    const items = entries
+      .map((e, i) => {
+        const isUnread = this.#fresh.has(e.id)
+        const divider = i && i === split ? ` data-l="${s.earlier}"` : ''
+        return `<li class="e${isUnread ? ' u' : ''}" part="entry"${divider}><div class="m">${this.#tag(e)}<time datetime="${esc(e.date)}">${this.#date(e.date)}</time>${isUnread ? `<span class="sr">${s.unreadOne}</span>` : ''}</div><h3 class="h" part="entry-title">${esc(this.#text(e).title)}</h3>${this.#details(e)}</li>`
+      })
+      .join('')
+    const body = !this.#feed
+      ? `<p class="empty" role="alert">${s.error}</p>`
+      : items
+        ? `<ul class="l" part="list">${items}</ul>`
+        : `<p class="empty">${s.empty}</p>`
+    const top = panel.scrollTop
+    const focused = panel.contains(root.activeElement)
+    panel.lang = this.#locale
+    panel.innerHTML = `<header part="header"><h2 id="sd-t">${s.title}</h2><button type="button" class="x" part="close" aria-label="${s.close}">×</button></header>${body}`
+    this.#fixUrls(panel)
+    ;(panel.querySelector('.x') as HTMLButtonElement).onclick = () => this.close()
+    panel.scrollTop = top
+    // Focus on a replaced element would fall back to <body>, outside the dialog.
+    if (focused && !panel.contains(root.activeElement)) panel.focus()
+    this.#view = this.#locale
+  }
+
   #update(): void {
     const feed = this.#feed
     if (!feed || !this.#btn) return
@@ -354,6 +390,12 @@ export class ShipDot extends Base {
       count ? `${s.title} (${s.unread.replace('{n}', String(count))})` : s.title,
     )
     this.dataset.unread = String(count)
+    // A new feed or locale while the panel is open: show it, and the new entries count as seen.
+    if (this.#isOpen && this.#view !== this.#locale) {
+      this.#render()
+      this.#place()
+      this.markRead([...this.#fresh])
+    }
 
     const spots: Spot[] =
       this.getAttribute('hotspots') === 'off' || !this.#owns()
@@ -442,9 +484,12 @@ export class ShipDot extends Base {
 
   #date(date: string): string {
     try {
-      return new Intl.DateTimeFormat(this.#locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(
-        new Date(`${date}T00:00:00Z`),
-      )
+      // One formatter per render: creating one per entry is slow on long feeds.
+      this.#dates ??= new Intl.DateTimeFormat(this.#locale, {
+        dateStyle: 'medium',
+        timeZone: 'UTC',
+      })
+      return this.#dates.format(new Date(`${date}T00:00:00Z`))
     } catch {
       return esc(date)
     }

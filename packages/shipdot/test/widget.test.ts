@@ -295,6 +295,63 @@ describe('<ship-dot>', () => {
     expect(errors[1]).toMatch(/is not a shipdot.json v1 feed/)
   })
 
+  it('puts an "Earlier" divider above the first read entry after unread ones', async () => {
+    writeIds('shipdot:default', ['search', 'bug'])
+    mockFeed()
+    const el = await mount({ hotspots: 'off' })
+    el.open()
+    const marked = el.shadowRoot?.querySelectorAll('li[data-l]') as NodeListOf<HTMLElement>
+    expect([...marked].map((li) => [li.querySelector('.h')?.textContent, li.dataset.l])).toEqual([
+      ['Faster <search>', 'Earlier'],
+    ])
+    el.close()
+    // Everything read now: no divider.
+    el.open()
+    expect(el.shadowRoot?.querySelector('li[data-l]')).toBeNull()
+  })
+
+  it('opens with an error message when src fails, and fills in when a retry works', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockFeed({}, 500)
+    const el = await mount({ locale: 'es' })
+    expect(trigger(el).getAttribute('aria-label')).toBe('Novedades')
+    const fetchMock = mockFeed()
+    const ready = new Promise((resolve) =>
+      el.addEventListener('shipdot:ready', resolve, { once: true }),
+    )
+    trigger(el).click()
+    const panel = el.shadowRoot?.querySelector('[part="panel"]') as HTMLElement
+    expect(panel.querySelector('[role="alert"]')?.textContent).toBe(
+      'No se pudieron cargar las novedades. Inténtalo más tarde.',
+    )
+    await ready
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(panel.querySelectorAll('li.e')).toHaveLength(3)
+    expect(panel.querySelector('[role="alert"]')).toBeNull()
+  })
+
+  it('re-renders the open panel when a refresh brings new entries', async () => {
+    const fetchMock = mockFeed()
+    const el = await mount({ hotspots: 'off' })
+    el.open()
+    const panel = el.shadowRoot?.querySelector('[part="panel"]') as HTMLElement
+    const fresh = { id: 'fresh', date: '2026-10-20', type: 'new', title: 'Fresh', html: '' }
+    fetchMock.mockImplementation(
+      async () => new Response(JSON.stringify({ ...feed, entries: [fresh, ...feed.entries] })),
+    )
+    const reads: string[][] = []
+    el.addEventListener('shipdot:read', (e) =>
+      reads.push((e as ShipDotEventMap['shipdot:read']).detail.ids),
+    )
+    await el.refresh()
+    expect(panel.querySelector('li.e.u .h')?.textContent).toBe('Fresh')
+    expect(panel.querySelectorAll('li.e')).toHaveLength(4)
+    expect(reads).toEqual([['fresh']])
+    expect(badge(el).hidden).toBe(true)
+    el.setAttribute('locale', 'es')
+    expect(panel.querySelector('h2')?.textContent).toBe('Novedades')
+  })
+
   it('keeps the feed of the latest src when an older request finishes last', async () => {
     let releaseOld = () => {}
     const old = new Promise<void>((resolve) => {

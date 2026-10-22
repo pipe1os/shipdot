@@ -154,10 +154,10 @@ Target: **MVP v0.1.0** (not published).
 Candidates found while reviewing the widget (2026-10-21). Not covered by open GitHub issues. Each must fit the 10 KB budget.
 
 - [ ] Scheduled entries: entries dated in the future stay hidden until their date (UTC), so teams can merge an announcement before a launch. `shipdot build` must also keep them out of `llms.txt`, or the widget and `llms.txt` disagree.
-- [ ] "Earlier" divider in the feed between unread and read entries, easier to scan than the unread dot alone.
+- [x] "Earlier" divider in the feed between unread and read entries, easier to scan than the unread dot alone.
 - [ ] Relative dates ("3 days ago") with `Intl.RelativeTimeFormat`, keeping the absolute date in `<time datetime>` and as a tooltip.
-- [ ] Load-error state: when `src` fails to load, clicking the trigger opens the panel with a short message instead of doing nothing.
-- [ ] Live panel: when `refresh()` brings new entries while the panel is open, re-render it without losing scroll position or focus.
+- [x] Load-error state: when `src` fails to load, clicking the trigger opens the panel with a short message instead of doing nothing.
+- [x] Live panel: when `refresh()` brings new entries while the panel is open, re-render it without losing scroll position or focus.
 
 ## Notes and deviations
 
@@ -216,3 +216,4 @@ Candidates found while reviewing the widget (2026-10-21). Not covered by open Gi
 - 2026-10-21 — Feed refresh: a tab that comes back to the foreground 10 minutes or more after the last load fetches `src` again, and every fetch revalidates (`cache: 'no-cache'`), so tabs left open for days pick up new entries. New entries arrive unread.
 - 2026-10-21 — Placement and theme sync: a popover opened above the trigger is anchored by its bottom edge and the hotspot tooltip is re-placed when it resizes, so images that load late no longer push them over their anchor. The hotspot layer re-copies the host's theme properties after DOM changes (only writing on a change, so it cannot loop), so an app theme switch reaches the dots and tooltip.
 - 2026-10-22 — Next.js demo: `examples/next` is a static export (`output: 'export'`, `basePath` from `BASE_PATH`), and the docs workflow publishes it at `/shipdot/demo/next/` next to the docs, so the example has a live URL.
+- 2026-10-22 — Widget feed panel: an "Earlier" divider separates read entries from unread ones; when `src` fails to load, the trigger opens the panel with an error message and retries the fetch (the panel fills in if it works); a refresh or locale change while the panel is open re-renders it, keeping scroll position and focus inside it, and new entries count as seen. The bell has an accessible name before the feed loads (it had none until then, and never when loading failed). Forced colors mode (Windows High Contrast) keeps the badge, unread dot and hotspot dots visible. One date formatter per render instead of one per entry. Widget 7.62 KB min+gzip.

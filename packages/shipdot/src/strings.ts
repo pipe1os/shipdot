@@ -7,6 +7,10 @@ export interface Strings {
   gotIt: string
   more: string
   empty: string
+  /** Divider above entries that were already read. */
+  earlier: string
+  /** Shown in the panel when `src` could not be loaded. */
+  error: string
   new: string
   improved: string
   fixed: string
@@ -22,6 +26,8 @@ export const STRINGS: Record<string, Strings> = {
     gotIt: 'Got it',
     more: 'Learn more',
     empty: 'Nothing new yet.',
+    earlier: 'Earlier',
+    error: "Couldn't load updates. Try again later.",
     new: 'New',
     improved: 'Improved',
     fixed: 'Fixed',
@@ -34,6 +40,8 @@ export const STRINGS: Record<string, Strings> = {
     gotIt: 'Entendido',
     more: 'Más información',
     empty: 'Aún no hay novedades.',
+    earlier: 'Anteriores',
+    error: 'No se pudieron cargar las novedades. Inténtalo más tarde.',
     new: 'Nuevo',
     improved: 'Mejorado',
     fixed: 'Corregido',
@@ -46,6 +54,8 @@ export const STRINGS: Record<string, Strings> = {
     gotIt: 'Entendi',
     more: 'Saiba mais',
     empty: 'Nenhuma novidade ainda.',
+    earlier: 'Anteriores',
+    error: 'Não foi possível carregar as novidades. Tente mais tarde.',
     new: 'Novo',
     improved: 'Melhorado',
     fixed: 'Corrigido',
