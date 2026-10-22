@@ -50,6 +50,7 @@ ul.l{list-style:none;margin:0;padding:0}
 .e{padding:16px;border-bottom:1px solid var(--_bd)}.e:last-child{border:0}
 .m{display:flex;align-items:center;gap:8px;color:var(--_mu);font-size:12px}
 .u .m::after{content:"";width:8px;height:8px;margin-left:auto;border-radius:50%;background:var(--_a)}
+[data-l]::before{content:attr(data-l);display:block;margin:-16px -16px 16px;padding:6px 16px;border-bottom:1px solid var(--_bd);background:color-mix(in srgb,var(--_fg) 4%,transparent);color:var(--_mu);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 .h{margin:8px 0 4px;font-size:15px;font-weight:600}
 .empty{padding:32px 16px;text-align:center;color:var(--_mu)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}${FORCED}`

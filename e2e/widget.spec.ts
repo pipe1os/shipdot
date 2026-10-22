@@ -30,6 +30,18 @@ test.describe('feed panel', () => {
     await expect(trigger(page)).toHaveAccessibleName("What's new")
   })
 
+  test('opens with an error message when the feed fails to load', async ({ page }) => {
+    await page.route('**/shipdot.json', (route) => route.fulfill({ status: 500 }))
+    await page.goto('/?hotspots=off')
+    await trigger(page).click()
+    await expect(panel(page).getByRole('alert')).toHaveText(
+      "Couldn't load updates. Try again later.",
+    )
+    await page.keyboard.press('Escape')
+    await expect(panel(page)).toBeHidden()
+    await expect(trigger(page)).toBeFocused()
+  })
+
   test('reading in one tab clears the badge and hotspot in another', async ({ page, context }) => {
     await page.goto('/')
     const other = await context.newPage()
