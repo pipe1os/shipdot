@@ -47,7 +47,7 @@
 - **Hotspots on the real UI.** An entry with `target: "#btn-export"` puts a pulsing dot on that button. Telling users a feature exists is good; pointing at it is better. Hotspots follow their target on scroll and resize, wait for elements rendered late in SPAs, and hide when the target is hidden.
 - **Git-native, reviewed by a human.** `shipdot draft` turns merged pull requests into notes written for end users and opens a pull request. You fix the wording, merge, ship.
 - **Multi-language from day one.** `entry.es.md` next to `entry.md`. The widget picks the user's language, falls back per entry, and ships its UI strings in English, Spanish and Portuguese.
-- **Nothing to run or pay for per user.** A static `shipdot.json` and a web component under 7 KB min+gzip. No backend and no telemetry: your announcements stay in your repository, and read state stays in your users' browsers.
+- **Nothing to run or pay for per user.** A static `shipdot.json` and a web component of about 7 KB min+gzip. No backend and no telemetry: your announcements stay in your repository, and read state stays in your users' browsers.
 
 ## Features
 
@@ -90,7 +90,7 @@ npx @shipdot/cli build   # → public/shipdot.json, public/llms.txt, public/llms
 **3. Add the widget**
 
 ```html
-<script type="module" src="https://unpkg.com/shipdot@0.1"></script>
+<script type="module" src="https://unpkg.com/shipdot@0.2"></script>
 <ship-dot src="/shipdot.json"></ship-dot>
 ```
 

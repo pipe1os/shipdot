@@ -4,7 +4,7 @@ description: Attributes, properties, methods, events, slots, parts and browser s
 ---
 
 ```html
-<script type="module" src="https://unpkg.com/shipdot@0.1"></script>
+<script type="module" src="https://unpkg.com/shipdot@0.2"></script>
 <ship-dot src="/shipdot.json"></ship-dot>
 ```
 
@@ -36,7 +36,7 @@ The element reflects the unread count in `data-unread`.
 | `markAllRead()` | Marks every entry as read, clearing the badge and the hotspots. |
 | `markRead(ids)` | Marks the entries with these IDs as read. Works before the feed loads. See [Syncing read state across devices](#syncing-read-state-across-devices). |
 | `replayLatest()` | Marks the newest entry as unread again, bringing back its badge and hotspot. Handy for a "What's new?" link. |
-| `refresh()` | Fetches `src` again and re-renders. Returns a promise. |
+| `refresh()` | Fetches `src` again and re-renders. Returns a promise. The widget also calls it when a tab comes back to the foreground 10 minutes or more after the last load, so tabs left open for days see new entries. Requests revalidate with the server (`cache: 'no-cache'`), so an unchanged feed costs a `304`. |
 
 ```js
 const widget = document.querySelector('ship-dot')
@@ -72,6 +72,10 @@ document.addEventListener('shipdot:read', (event) => {
 
 The IDs of read entries are stored in `localStorage` (only IDs still present in the feed, at most 500). Every access is wrapped in `try/catch`: in private mode, with storage disabled, or in a sandboxed iframe, the widget works the same and keeps read state in memory for the session. Nothing is sent anywhere.
 
+### Tabs and widgets on the same page
+
+Reads reach every open tab of your site and every other `<ship-dot>` on the page with the same `storage-key`, through a [`BroadcastChannel`](https://developer.mozilla.org/docs/Web/API/BroadcastChannel) named after the key. This works without `localStorage` too and never leaves the browser. Only the widget where the entries were read fires `shipdot:read`, so a sync handler like the one below runs once per read. When two widgets share a key (say, one in the desktop header and one in the mobile menu), only the first one draws hotspots; if it is removed, the other takes over.
+
 ### Syncing read state across devices
 
 Read state lives on one device. If your app has user accounts, it can carry read state between devices on its own: save the IDs from `shipdot:read` and hand them back with `markRead()`.
@@ -96,14 +100,14 @@ Read state lives on one device. If your app has user accounts, it can carry read
 </script>
 ```
 
-`/api/me/shipdot-read` stands for an endpoint of your own app that adds the posted IDs to a set per user and returns that set. Read state only grows, so merging devices is a union and never conflicts. `shipdot:read` also fires for the IDs you pass to `markRead()` that this device had not read yet; a set ignores the ones it already has. `replayLatest()` only affects the current device.
+`/api/me/shipdot-read` stands for an endpoint of your own app that adds the posted IDs to a set per user and returns that set. Read state only grows, so merging devices is a union and never conflicts. `shipdot:read` also fires for the IDs you pass to `markRead()` that this device had not read yet; a set ignores the ones it already has. `replayLatest()` only affects the current widget.
 
 shipdot itself still sends nothing: the requests above are your app's, to your server.
 
 ## Accessibility
 
 - The trigger is a `<button>` whose accessible name includes the unread count ("What's new (2 unread)"), with `aria-expanded` and `aria-haspopup="dialog"`.
-- The panel is a labeled dialog. Drawer and modal use a native modal `<dialog>`: focus is trapped inside, Esc closes it, and focus returns to the trigger. The popover closes on Esc or an outside click.
+- The panel is a labeled dialog. Drawer and modal use a native modal `<dialog>`: focus is trapped inside, Esc closes it, and focus returns to the trigger. The popover closes on Esc, an outside click, or when Tab moves focus out of it (focus stays where it went).
 - Unread entries are announced with visually hidden text, not only by color.
 - Hotspots are keyboard-reachable buttons; tooltips are labeled dialogs.
 - Both themes meet WCAG 2.1 AA contrast. axe runs on every panel mode and theme in CI.

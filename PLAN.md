@@ -149,6 +149,50 @@ Target: **MVP v0.1.0** (not published).
 - More built-in UI locales
 - "Show me" from the feed: scroll to and highlight an entry's target
 
+### Widget feature backlog
+
+Candidates found while reviewing the widget (2026-10-21). Not covered by open GitHub issues. Each must fit the 10 KB budget.
+
+- [ ] Scheduled entries: entries dated in the future stay hidden until their date (UTC), so teams can merge an announcement before a launch. `shipdot build` must also keep them out of `llms.txt`, or the widget and `llms.txt` disagree.
+- [x] "Earlier" divider in the feed between unread and read entries, easier to scan than the unread dot alone.
+- [ ] Relative dates ("3 days ago") with `Intl.RelativeTimeFormat`, keeping the absolute date in `<time datetime>` and as a tooltip.
+- [x] Load-error state: when `src` fails to load, clicking the trigger opens the panel with a short message instead of doing nothing.
+- [x] Live panel: when `refresh()` brings new entries while the panel is open, re-render it without losing scroll position or focus.
+
+## Before v1.0.0
+
+Not scheduled. Keep releasing `0.x` minors until the API stops changing; go through this list when a 1.0 release is close. v1.0.0 is a promise that nothing below changes in a breaking way until 2.0.
+
+**When is it time**
+
+- [ ] A couple of minor releases in a row with no breaking change
+- [ ] At least one real integration outside this repository that did not need API changes
+- [ ] Nothing left on the public surface (below) that we would still rename or remove
+
+**Freeze the public surface**: write one docs page that lists everything users type into their own code or config, review it once, and rename or remove anything awkward while still in `0.x`. What remains on the page is what 1.0 promises.
+
+- [ ] Widget: attributes (`src`, `locale`, `mode`, `storage-key`, …), methods (`refresh`, `markRead`, `markAllRead`, `replayLatest`), `shipdot:*` events and their `detail`, `--shipdot-*` custom properties, slots and parts, UI string keys
+- [ ] Entry frontmatter fields, `shipdot.json` v1 and the config file (JSON Schemas in `packages/core/schema/`)
+- [ ] CLI: commands, flags, exit codes
+- [ ] Action: inputs and outputs in `action.yml`
+- [ ] `@shipdot/core` and `@shipdot/core/compile`: decide which exports are supported; mark the rest internal or stop exporting them
+- [ ] Decide scheduled entries (backlog above) first: hiding future-dated entries after 1.0 would change how existing feeds behave. Ship it, or make it opt-in with a new field
+
+**Semver policy**
+
+- [ ] Docs page that says what counts as breaking (removed or renamed attributes, methods, events, custom properties, fields, flags, inputs; changed defaults) and what does not (new optional fields and options, bug fixes, visual polish)
+- [ ] Deprecation policy: how long the widget keeps supporting an old feed version (invariant 8) and how deprecations are announced
+
+**Leaving `0.x`**
+
+- [ ] Update `pipe1os/shipdot@v0` to `@v1` in README, README_es, docs, `packages/cli/src/init.ts`, `examples/github-action` (no script rewrites these); keep the `v0` tag working for existing workflows
+- [ ] CDN pins switch to the major on their own (`cdnRange` in `init.ts`, `scripts/sync-cdn-version.ts`); check the result after `pnpm version-packages`
+- [ ] Remove the `0.x` status note from README and README_es
+- [ ] SECURITY.md supported versions (`1.x`, Action `@v1`; say whether `0.x` still gets fixes)
+- [ ] CONTRIBUTING bump rules: features are `minor`, breaking changes are `major`
+- [ ] Revisit the Notes below that say "while in `0.x`" (Changesets `fixed` group, CDN pins)
+- [ ] Major changeset for all three packages, with a changelog entry that explains the stability promise
+
 ## Notes and deviations
 
 - **Compile pipeline lives in `@shipdot/core/compile`, not in the CLI.** It is isomorphic (unified + rehype-sanitize + yaml, no Node APIs), so the docs playground runs exactly the same parsing and sanitization as `shipdot build`. The CLI only does file IO. Sanitization still happens at build time, never in the widget.
@@ -199,3 +243,12 @@ Target: **MVP v0.1.0** (not published).
 - 2026-10-15 — Security: `stripHtmlComments` (`@shipdot/core/compile`) no longer runs the Markdown parser, which was quadratic on nested lists and block quotes (a list nested 4,000 levels deep took 6 s; lazy lines after a deep block quote, minutes). A linear scanner replaces it and gave remark's output on about 1.5 million fuzzed documents (reference links aside, see Notes). Adds a seeded differential test, adversarial tests for nested lists and block quotes, and a rebuilt `action/dist`.
 - 2026-10-17 — Roadmap: read state can sync across devices. `markRead(ids)` is public, so an app with accounts stores the IDs from `shipdot:read` and passes them back; recipe in the widget reference and the FAQ.
 - 2026-10-15 — README images redesigned after the logo: flat ink/paper/signal palette instead of indigo glows, the hero puts the Export hotspot on the seam between the app and its entry file (with `shipdot build` output under it), the panel lines up with the page edge, fonts bundled as devDependencies for reproducible renders.
+- 2026-10-21 — Widget polish: popover flips above a trigger near the bottom of the viewport (max height from `innerHeight` instead of `100vh`), hotspots respect clipping by scroll containers, slotted triggers get `aria-expanded`/`aria-haspopup`, stale `refresh()` responses are dropped, and the popover, modal and tooltip fade in unless reduced motion is requested. Widget 6.7 KB min+gzip; unit and e2e tests added (the e2e ones fail on the previous build).
+- 2026-10-21 — Hotspot tracking: dots follow targets that move without a scroll or resize (content inserted above, CSS transitions, `visibility` changes). The MutationObserver stays on while hotspots exist, and `transitionend`/`animationend` schedule a layout. The hotspot layer is no longer rebuilt when an unrelated entry is read, so pulses do not restart and an open tooltip stays open.
+- 2026-10-21 — Read state syncs across tabs and widgets: a `BroadcastChannel` per storage key carries reads to other tabs and to other `<ship-dot>` elements on the page (also without `localStorage`), without firing `shipdot:read` again. Widgets sharing a key draw hotspots once; the first connected one owns them and hands them over when removed.
+- 2026-10-21 — Popover focus: tabbing out of the popover closes it and leaves focus where it went. Before, it stayed open behind the page and a later Esc pulled focus back to the trigger.
+- 2026-10-21 — Feed refresh: a tab that comes back to the foreground 10 minutes or more after the last load fetches `src` again, and every fetch revalidates (`cache: 'no-cache'`), so tabs left open for days pick up new entries. New entries arrive unread.
+- 2026-10-21 — Placement and theme sync: a popover opened above the trigger is anchored by its bottom edge and the hotspot tooltip is re-placed when it resizes, so images that load late no longer push them over their anchor. The hotspot layer re-copies the host's theme properties after DOM changes (only writing on a change, so it cannot loop), so an app theme switch reaches the dots and tooltip.
+- 2026-10-22 — Next.js demo: `examples/next` is a static export (`output: 'export'`, `basePath` from `BASE_PATH`), and the docs workflow publishes it at `/shipdot/demo/next/` next to the docs, so the example has a live URL.
+- 2026-10-22 — Widget feed panel: an "Earlier" divider separates read entries from unread ones; when `src` fails to load, the trigger opens the panel with an error message and retries the fetch (the panel fills in if it works); a refresh or locale change while the panel is open re-renders it, keeping scroll position and focus inside it, and new entries count as seen. The bell has an accessible name before the feed loads (it had none until then, and never when loading failed). Forced colors mode (Windows High Contrast) keeps the badge, unread dot and hotspot dots visible. One date formatter per render instead of one per entry. Widget 7.62 KB min+gzip.
+- 2026-10-22 — Planning: "Before v1.0.0" checklist (not scheduled): when to leave `0.x`, freezing the public surface, a semver and deprecation policy, and the `v0` → `v1` references to update.

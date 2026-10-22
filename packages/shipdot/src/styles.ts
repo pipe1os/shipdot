@@ -22,7 +22,13 @@ const CONTENT = `:host([theme=light]){color-scheme:light}:host([theme=dark]){col
 .b pre{overflow:auto;padding:8px;border-radius:8px;background:color-mix(in srgb,var(--_fg) 8%,transparent)}
 .b pre code{padding:0;background:none}
 .b img,.img{display:block;max-width:100%;height:auto;margin:8px 0;border-radius:8px}
-.more{display:inline-block;margin-top:8px}`
+.more{display:inline-block;margin-top:8px}
+@media (prefers-reduced-motion:no-preference){.popover:popover-open,.modal[open],.tip{animation:sd-f .15s ease-out}}
+@keyframes sd-f{from{opacity:0;scale:.97}}`
+
+// Forced colors (Windows High Contrast) paint backgrounds with the page color, which would
+// hide the badge and the dots. Last in each sheet so it wins over `all:unset`.
+const FORCED = `@media (forced-colors:active){.badge,.dot,.u .m::after{forced-color-adjust:none}.badge{background:Highlight;color:HighlightText}.dot::before,.u .m::after{background:Highlight;box-shadow:0 0 0 2px Canvas}.dot::after{border-color:Highlight}.tag,.ok{border:1px solid}}`
 
 export const HOST_CSS: string = `:host{${VARS};display:inline-block;position:relative}${CONTENT}
 .trigger{all:unset;position:relative;display:inline-grid;place-items:center;box-sizing:border-box;width:var(--shipdot-trigger-size,40px);height:var(--shipdot-trigger-size,40px);border-radius:50%;cursor:pointer}
@@ -44,9 +50,10 @@ ul.l{list-style:none;margin:0;padding:0}
 .e{padding:16px;border-bottom:1px solid var(--_bd)}.e:last-child{border:0}
 .m{display:flex;align-items:center;gap:8px;color:var(--_mu);font-size:12px}
 .u .m::after{content:"";width:8px;height:8px;margin-left:auto;border-radius:50%;background:var(--_a)}
+[data-l]::before{content:attr(data-l);display:block;margin:-16px -16px 16px;padding:6px 16px;border-bottom:1px solid var(--_bd);background:color-mix(in srgb,var(--_fg) 4%,transparent);color:var(--_mu);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 .h{margin:8px 0 4px;font-size:15px;font-weight:600}
 .empty{padding:32px 16px;text-align:center;color:var(--_mu)}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}`
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}${FORCED}`
 
 export const LAYER_CSS: string = `:host{${VARS};position:fixed;inset:0;pointer-events:none;z-index:var(--shipdot-z,2147483000)}${CONTENT}
 .dot{all:unset;position:fixed;left:0;top:0;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;pointer-events:auto;cursor:pointer}
@@ -57,7 +64,7 @@ export const LAYER_CSS: string = `:host{${VARS};position:fixed;inset:0;pointer-e
 @media (prefers-reduced-motion:reduce){.dot::after{animation:none;transform:scale(1.6);opacity:.5}}
 .tip{position:fixed;left:0;top:0;box-sizing:border-box;width:min(320px,calc(100vw - 16px));padding:16px;pointer-events:auto;background:var(--_bg);color:var(--_fg);border:1px solid var(--_bd);border-radius:var(--_r);box-shadow:var(--_sh)}
 .tt{margin:8px 0 4px;font-size:15px;font-weight:600}
-.ok{all:unset;display:block;width:fit-content;margin-top:12px;padding:6px 14px;border-radius:8px;background:var(--_a);color:var(--_ac);font-weight:600;cursor:pointer}`
+.ok{all:unset;display:block;width:fit-content;margin-top:12px;padding:6px 14px;border-radius:8px;background:var(--_a);color:var(--_ac);font-weight:600;cursor:pointer}${FORCED}`
 
 /** Custom properties copied onto the hotspot layer, which lives outside `<ship-dot>`. */
 export const THEME_PROPS: string[] = [

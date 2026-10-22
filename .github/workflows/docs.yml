@@ -29,6 +29,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:packages
       - run: pnpm docs:build
+      - name: Add the Next.js example as a live demo
+        run: |
+          BASE_PATH=/shipdot/demo/next pnpm --filter @shipdot/example-next build
+          mkdir -p apps/docs/dist/demo
+          cp -r examples/next/out apps/docs/dist/demo/next
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: apps/docs/dist

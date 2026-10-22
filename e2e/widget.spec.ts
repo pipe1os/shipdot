@@ -30,6 +30,45 @@ test.describe('feed panel', () => {
     await expect(trigger(page)).toHaveAccessibleName("What's new")
   })
 
+  test('opens with an error message when the feed fails to load', async ({ page }) => {
+    await page.route('**/shipdot.json', (route) => route.fulfill({ status: 500 }))
+    await page.goto('/?hotspots=off')
+    await trigger(page).click()
+    await expect(panel(page).getByRole('alert')).toHaveText(
+      "Couldn't load updates. Try again later.",
+    )
+    await page.keyboard.press('Escape')
+    await expect(panel(page)).toBeHidden()
+    await expect(trigger(page)).toBeFocused()
+  })
+
+  test('reading in one tab clears the badge and hotspot in another', async ({ page, context }) => {
+    await page.goto('/')
+    const other = await context.newPage()
+    await other.goto('/')
+    await expect(trigger(other)).toHaveAccessibleName("What's new (1 unread)")
+    await expect(other.getByRole('button', { name: 'New: Export to Excel' })).toBeVisible()
+
+    await trigger(page).click()
+    await expect(trigger(other)).toHaveAccessibleName("What's new")
+    await expect(other.locator('.shipdot-layer')).toHaveCount(0)
+  })
+
+  test('popover: closes when focus tabs out of it, without moving focus', async ({ page }) => {
+    await page.goto('/?hotspots=off')
+    await trigger(page).focus()
+    await page.keyboard.press('Enter')
+    await expect(panel(page)).toBeVisible()
+    const share = page.locator('#btn-share')
+    for (let i = 0; i < 10 && !(await share.evaluate((el) => el === document.activeElement)); i++) {
+      await expect(panel(page)).toBeVisible()
+      await page.keyboard.press('Tab')
+    }
+    await expect(share).toBeFocused()
+    await expect(panel(page)).toBeHidden()
+    await expect(trigger(page)).toHaveAttribute('aria-expanded', 'false')
+  })
+
   test('first visit with mark-read starts with nothing unread', async ({ page }) => {
     await page.goto('/?first-visit=mark-read')
     await expect(trigger(page)).toHaveAccessibleName("What's new")
@@ -59,6 +98,32 @@ test.describe('feed panel', () => {
     await trigger(page).click()
     await trigger(page).click()
     await expect(panel(page)).toBeHidden()
+  })
+
+  test('popover: opens above a trigger near the bottom of the viewport', async ({ page }) => {
+    await page.goto('/?hotspots=off&bottom=1')
+    await trigger(page).click()
+    await expect(panel(page)).toBeVisible()
+    const button = await trigger(page).boundingBox()
+    const box = await panel(page).boundingBox()
+    if (!button || !box) throw new Error('missing boxes')
+    expect(box.y + box.height).toBeLessThanOrEqual(button.y)
+    expect(box.y).toBeGreaterThanOrEqual(0)
+  })
+
+  test('popover: stays above the trigger when its content grows (images loading)', async ({
+    page,
+  }) => {
+    await page.goto('/?hotspots=off&bottom=1')
+    await trigger(page).click()
+    await expect(panel(page)).toBeVisible()
+    await panel(page)
+      .getByRole('list')
+      .evaluate((list) => list.insertAdjacentHTML('beforeend', '<li style="height:120px"></li>'))
+    const button = await trigger(page).boundingBox()
+    const box = await panel(page).boundingBox()
+    if (!button || !box) throw new Error('missing boxes')
+    expect(box.y + box.height).toBeLessThanOrEqual(button.y)
   })
 
   for (const mode of ['drawer', 'modal'] as const) {
@@ -106,6 +171,8 @@ test.describe('accessibility (axe)', () => {
         await page.goto(`/?hotspots=off&mode=${mode}&theme=${theme}`)
         await trigger(page).click()
         await expect(panel(page)).toBeVisible()
+        // Contrast is checked on the final frame, not halfway through the fade-in.
+        await panel(page).evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)))
         const results = await new AxeBuilder({ page })
           .include('ship-dot')
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

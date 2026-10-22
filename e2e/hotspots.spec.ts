@@ -43,6 +43,7 @@ test('tooltip: opens on click, "Got it" marks read and survives reloads', async 
   await expect(tooltip).toBeVisible()
   await expect(tooltip).toContainText('with one click')
   expect(clicks).toEqual(['2026-10-14-export-excel'])
+  await tooltip.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)))
 
   const axe = await new AxeBuilder({ page })
     .include('.shipdot-layer')
@@ -85,6 +86,102 @@ test('stays hidden while the target is not visible', async ({ page }) => {
   await expectOverTarget(page)
 })
 
+test('hides when the target scrolls out of an inner scroll container', async ({ page }) => {
+  await page.goto('/?pane=1')
+  await expect(hotspot(page)).toBeVisible()
+  await expectOverTarget(page)
+  await page.locator('#pane').evaluate((pane) => pane.scrollTo(0, 150))
+  await expect(hotspot(page)).toBeHidden()
+  await page.locator('#pane').evaluate((pane) => pane.scrollTo(0, 0))
+  await expect(hotspot(page)).toBeVisible()
+  await expectOverTarget(page)
+})
+
+test('follows a target that moves without scrolling or resizing', async ({ page }) => {
+  await page.goto('/?pane=1')
+  await expect(hotspot(page)).toBeVisible()
+  // Content inserted above the target inside a fixed-height pane: nothing scrolls or resizes.
+  await page.locator('#pane').evaluate((pane) => {
+    const banner = document.createElement('p')
+    banner.style.cssText = 'height:40px;margin:0'
+    pane.prepend(banner)
+  })
+  await expect
+    .poll(() =>
+      expectOverTarget(page).then(
+        () => true,
+        () => false,
+      ),
+    )
+    .toBe(true)
+  // A CSS transition moves it again.
+  await exportButton(page).evaluate((button) => {
+    button.style.transition = 'margin-left .1s'
+    button.style.marginLeft = '80px'
+  })
+  await expect
+    .poll(() =>
+      expectOverTarget(page).then(
+        () => true,
+        () => false,
+      ),
+    )
+    .toBe(true)
+})
+
+test('an open tooltip survives another entry being read', async ({ page }) => {
+  // Everything unread, so reading the untargeted entries changes the read state.
+  await page.addInitScript(() => localStorage.setItem('shipdot:default', '[]'))
+  await page.goto('/')
+  await hotspot(page).click()
+  const tooltip = page.getByRole('dialog', { name: 'Export to Excel' })
+  await expect(tooltip).toBeVisible()
+  await page
+    .locator('ship-dot')
+    .evaluate((el: HTMLElement & { markRead(ids: string[]): void }) =>
+      el.markRead(['2026-09-01-faster-search']),
+    )
+  await expect(page.getByRole('button', { name: "What's new (2 unread)" })).toBeVisible()
+  await expect(tooltip).toBeVisible()
+})
+
+test('a tooltip above its target stays above it when its content grows', async ({ page }) => {
+  await page.goto('/')
+  // Push the target to the bottom of the viewport so the tooltip opens above it.
+  await page.locator('#export-row').evaluate((row) => {
+    row.style.marginTop = `${innerHeight - row.getBoundingClientRect().top - 80}px`
+  })
+  await hotspot(page).click()
+  const tooltip = page.getByRole('dialog', { name: 'Export to Excel' })
+  await expect(tooltip).toBeVisible()
+  // An image in the tooltip finishing loading.
+  await tooltip.evaluate((tip) => tip.insertAdjacentHTML('afterbegin', '<div style="height:80px">'))
+  await expect
+    .poll(async () => {
+      const tip = await tooltip.boundingBox()
+      const target = await exportButton(page).boundingBox()
+      return tip && target && tip.y + tip.height <= target.y
+    })
+    .toBe(true)
+})
+
+test('hotspots follow theme properties the app changes later', async ({ page }) => {
+  await page.addInitScript(() =>
+    document.addEventListener('DOMContentLoaded', () =>
+      document.head.insertAdjacentHTML(
+        'beforeend',
+        '<style>:root{--shipdot-hotspot:rgb(255, 0, 0)}:root.alt{--shipdot-hotspot:rgb(0, 128, 0)}</style>',
+      ),
+    ),
+  )
+  await page.goto('/')
+  const color = () =>
+    hotspot(page).evaluate((el) => getComputedStyle(el, '::before').backgroundColor)
+  await expect.poll(color).toBe('rgb(255, 0, 0)')
+  await page.evaluate(() => document.documentElement.classList.add('alt'))
+  await expect.poll(color).toBe('rgb(0, 128, 0)')
+})
+
 test('waits for targets rendered later (SPA)', async ({ page }) => {
   await page.goto('/?late=1')
   await expect(hotspot(page)).toBeVisible()
@@ -106,4 +203,16 @@ test('respects prefers-reduced-motion', async ({ page }) => {
     (el) => getComputedStyle(el, '::after').animationName,
   )
   expect(animation).toBe('none')
+})
+
+test('stays visible in forced colors mode (Windows High Contrast)', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' })
+  await page.goto('/')
+  await expect(hotspot(page)).toBeVisible()
+  // Forced colors would otherwise paint the dot with the page background.
+  const [dot, canvas] = await hotspot(page).evaluate((el) => [
+    getComputedStyle(el, '::before').backgroundColor,
+    getComputedStyle(document.body).backgroundColor,
+  ])
+  expect(dot).not.toBe(canvas)
 })

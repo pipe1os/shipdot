@@ -4,5 +4,5 @@
 import 'shipdot'
 
 export function WhatsNew() {
-  return <ship-dot src="/shipdot.json" first-visit="show-latest" />
+  return <ship-dot src={`${process.env.BASE_PATH}/shipdot.json`} first-visit="show-latest" />
 }

@@ -295,6 +295,129 @@ describe('<ship-dot>', () => {
     expect(errors[1]).toMatch(/is not a shipdot.json v1 feed/)
   })
 
+  it('puts an "Earlier" divider above the first read entry after unread ones', async () => {
+    writeIds('shipdot:default', ['search', 'bug'])
+    mockFeed()
+    const el = await mount({ hotspots: 'off' })
+    el.open()
+    const marked = el.shadowRoot?.querySelectorAll('li[data-l]') as NodeListOf<HTMLElement>
+    expect([...marked].map((li) => [li.querySelector('.h')?.textContent, li.dataset.l])).toEqual([
+      ['Faster <search>', 'Earlier'],
+    ])
+    el.close()
+    // Everything read now: no divider.
+    el.open()
+    expect(el.shadowRoot?.querySelector('li[data-l]')).toBeNull()
+  })
+
+  it('opens with an error message when src fails, and fills in when a retry works', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockFeed({}, 500)
+    const el = await mount({ locale: 'es' })
+    expect(trigger(el).getAttribute('aria-label')).toBe('Novedades')
+    const fetchMock = mockFeed()
+    const ready = new Promise((resolve) =>
+      el.addEventListener('shipdot:ready', resolve, { once: true }),
+    )
+    trigger(el).click()
+    const panel = el.shadowRoot?.querySelector('[part="panel"]') as HTMLElement
+    expect(panel.querySelector('[role="alert"]')?.textContent).toBe(
+      'No se pudieron cargar las novedades. Inténtalo más tarde.',
+    )
+    await ready
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(panel.querySelectorAll('li.e')).toHaveLength(3)
+    expect(panel.querySelector('[role="alert"]')).toBeNull()
+  })
+
+  it('re-renders the open panel when a refresh brings new entries', async () => {
+    const fetchMock = mockFeed()
+    const el = await mount({ hotspots: 'off' })
+    el.open()
+    const panel = el.shadowRoot?.querySelector('[part="panel"]') as HTMLElement
+    const fresh = { id: 'fresh', date: '2026-10-20', type: 'new', title: 'Fresh', html: '' }
+    fetchMock.mockImplementation(
+      async () => new Response(JSON.stringify({ ...feed, entries: [fresh, ...feed.entries] })),
+    )
+    const reads: string[][] = []
+    el.addEventListener('shipdot:read', (e) =>
+      reads.push((e as ShipDotEventMap['shipdot:read']).detail.ids),
+    )
+    await el.refresh()
+    expect(panel.querySelector('li.e.u .h')?.textContent).toBe('Fresh')
+    expect(panel.querySelectorAll('li.e')).toHaveLength(4)
+    expect(reads).toEqual([['fresh']])
+    expect(badge(el).hidden).toBe(true)
+    el.setAttribute('locale', 'es')
+    expect(panel.querySelector('h2')?.textContent).toBe('Novedades')
+  })
+
+  it('keeps the feed of the latest src when an older request finishes last', async () => {
+    let releaseOld = () => {}
+    const old = new Promise<void>((resolve) => {
+      releaseOld = resolve
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: URL) => {
+        if (url.pathname === '/old.json') {
+          await old
+          return new Response(JSON.stringify(feed))
+        }
+        return new Response(JSON.stringify({ ...feed, entries: [feed.entries[1]] }))
+      }),
+    )
+    const el = document.createElement('ship-dot')
+    el.setAttribute('src', '/old.json')
+    document.body.append(el)
+    const ready = new Promise((resolve) =>
+      el.addEventListener('shipdot:ready', resolve, { once: true }),
+    )
+    el.setAttribute('src', '/new.json')
+    await ready
+    releaseOld()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(el.entries.map((e) => e.id)).toEqual(['search'])
+  })
+
+  it('refetches the feed when the tab comes back after 10 minutes', async () => {
+    const fetchMock = mockFeed()
+    const now = vi.spyOn(Date, 'now').mockReturnValue(1_000_000)
+    const el = await mount({ hotspots: 'off' })
+    expect(fetchMock).toHaveBeenCalledWith(expect.any(URL), { cache: 'no-cache' })
+    const comeBack = (minutes: number) => {
+      now.mockReturnValue(1_000_000 + minutes * 60_000)
+      document.dispatchEvent(new Event('visibilitychange'))
+    }
+    comeBack(5)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    const fresh = { id: 'fresh', date: '2026-10-20', type: 'new', title: 'Fresh', html: '' }
+    fetchMock.mockImplementation(
+      async () => new Response(JSON.stringify({ ...feed, entries: [fresh, ...feed.entries] })),
+    )
+    const ready = new Promise((resolve) =>
+      el.addEventListener('shipdot:ready', resolve, { once: true }),
+    )
+    comeBack(11)
+    await ready
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(el.unread.map((e) => e.id)).toEqual(['fresh'])
+  })
+
+  it('sets aria-expanded on a slotted custom trigger', async () => {
+    mockFeed()
+    const el = await mount({ hotspots: 'off' }, (el) => {
+      el.innerHTML = '<button type="button">Updates</button>'
+    })
+    const custom = el.querySelector('button') as HTMLButtonElement
+    el.open()
+    expect(custom.getAttribute('aria-expanded')).toBe('true')
+    expect(custom.getAttribute('aria-haspopup')).toBe('dialog')
+    el.close()
+    expect(custom.getAttribute('aria-expanded')).toBe('false')
+  })
+
   it('creates hotspots for unread entries with a target', async () => {
     writeIds('shipdot:default', ['search', 'bug'])
     document.body.innerHTML = '<button id="btn-export">Export</button>'
@@ -305,6 +428,47 @@ describe('<ship-dot>', () => {
     expect(dot.getAttribute('aria-label')).toBe('New: Export to Excel')
     el.markAllRead()
     expect(document.querySelector('.shipdot-layer')).toBeNull()
+  })
+
+  it('keeps the hotspot layer when an entry without a target is read', async () => {
+    writeIds('shipdot:default', [])
+    document.body.innerHTML = '<button id="btn-export">Export</button>'
+    mockFeed()
+    const el = await mount()
+    const layer = document.querySelector('.shipdot-layer')
+    el.markRead(['search'])
+    expect(document.querySelector('.shipdot-layer')).toBe(layer)
+    el.setAttribute('locale', 'es')
+    expect(document.querySelector('.shipdot-layer')).not.toBe(layer)
+  })
+
+  it('syncs reads between widgets with the same storage key, without a second read event', async () => {
+    writeIds('shipdot:default', [])
+    writeIds('shipdot:other', [])
+    mockFeed()
+    const a = await mount({ hotspots: 'off' })
+    const b = await mount({ hotspots: 'off' })
+    const other = await mount({ hotspots: 'off', 'storage-key': 'other' })
+    const events: string[][] = []
+    b.addEventListener('shipdot:read', (e) =>
+      events.push((e as ShipDotEventMap['shipdot:read']).detail.ids),
+    )
+    a.markRead(['search'])
+    await vi.waitFor(() => expect(b.unread.map((e) => e.id)).toEqual(['export', 'bug']))
+    expect(badge(b).textContent).toBe('2')
+    expect(other.unread).toHaveLength(3)
+    expect(events).toEqual([])
+  })
+
+  it('draws hotspots once per storage key and hands them over on removal', async () => {
+    writeIds('shipdot:default', [])
+    document.body.innerHTML = '<button id="btn-export">Export</button>'
+    mockFeed()
+    const a = await mount()
+    await mount()
+    expect(document.querySelectorAll('.shipdot-layer')).toHaveLength(1)
+    a.remove()
+    await vi.waitFor(() => expect(document.querySelectorAll('.shipdot-layer')).toHaveLength(1))
   })
 
   it('does not create hotspots when disabled', async () => {
