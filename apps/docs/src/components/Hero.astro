@@ -1,0 +1,178 @@
+---
+// Home page hero: the headline and actions from the page's `hero` frontmatter, next to the real
+// <ship-dot> widget on the demo app, fed by the playground's sample entries.
+import { LinkButton } from '@astrojs/starlight/components'
+import { compile } from '@shipdot/core/compile'
+import { SAMPLES } from '../playground/samples'
+import DemoApp from './DemoApp.astro'
+
+const { title, tagline, actions = [] } = Astro.locals.starlightRoute.entry.data.hero ?? {}
+const { feed } = compile(SAMPLES, { defaultLocale: 'en', locales: ['en', 'es', 'pt'] })
+// Inlined as a data: URL, so the demo needs no extra file and works offline.
+const src = `data:application/json,${encodeURIComponent(JSON.stringify(feed))}`
+const languages = [
+  ['en', 'English'],
+  ['es', 'Español'],
+  ['pt', 'Português'],
+]
+---
+
+<div class="home-hero">
+  <h1 id="_top" data-page-title set:html={title} />
+  <div class="home-hero-body">
+    <div class="home-hero-copy">
+      {tagline && <p class="home-tagline" set:html={tagline} />}
+      <div class="home-actions">
+        {
+          actions.map(({ link, text, variant, icon }) => (
+            <LinkButton href={link} variant={variant} icon={icon?.name}>
+              {text}
+            </LinkButton>
+          ))
+        }
+      </div>
+    </div>
+    <div class="home-demo" data-home-demo>
+      <script is:inline>
+        // A new visitor sees every sample unread (the widget's first visit would mark them read).
+        try {
+          if (localStorage.getItem('shipdot:home-0') === null) localStorage.setItem('shipdot:home-0', '[]')
+        } catch {}
+      </script>
+      <DemoApp src={src} storageKey="home-0" theme="light" first-visit="show-latest" />
+      <div class="home-demo-bar">
+        <p>This is the real widget. Click the dot on <strong>Export</strong>, or open the bell.</p>
+        <div class="home-demo-controls">
+          <div role="group" aria-label="Widget language">
+            {
+              languages.map(([code, name]) => (
+                <button type="button" lang={code} data-locale={code} aria-pressed={String(code === 'en')}>
+                  {name}
+                </button>
+              ))
+            }
+          </div>
+          <button type="button" data-replay>Show the dots again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-home-demo]')
+  const widget = root?.querySelector('ship-dot')
+  if (root && widget) {
+    widget.setAttribute('locale', 'en')
+    const languages = root.querySelectorAll<HTMLButtonElement>('[data-locale]')
+    for (const button of languages)
+      button.addEventListener('click', () => {
+        widget.setAttribute('locale', button.dataset.locale as string)
+        for (const other of languages) other.setAttribute('aria-pressed', String(other === button))
+      })
+
+    // Same trick as the playground: a fresh storage key resets the read state held in memory too.
+    let resets = 0
+    root.querySelector<HTMLButtonElement>('[data-replay]')?.addEventListener('click', () => {
+      const key = `home-${++resets % 2}`
+      try {
+        localStorage.setItem(`shipdot:${key}`, '[]')
+      } catch {
+        // Storage disabled: the widget keeps read state in memory.
+      }
+      widget.setAttribute('storage-key', key)
+    })
+  }
+</script>
+
+<style>
+  .home-hero {
+    padding-block: 1.5rem 2rem;
+  }
+  .home-hero h1 {
+    margin: 0;
+    max-width: 16ch;
+    font-size: clamp(2.25rem, 1rem + 6vw, 6rem);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: var(--sl-color-white);
+  }
+  .home-hero-body {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    gap: 2rem 3rem;
+    align-items: start;
+    margin-top: clamp(1.5rem, 4vw, 3rem);
+  }
+  .home-tagline {
+    margin: 0;
+    font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3rem);
+    line-height: 1.5;
+    color: var(--sl-color-white);
+  }
+  .home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-top: 2rem;
+  }
+  .home-demo-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-top: 1rem;
+  }
+  .home-demo-bar p {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+  .home-demo-controls,
+  .home-demo-controls > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .home-demo-controls button {
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    cursor: pointer;
+    transition: background-color 120ms ease, transform 120ms ease;
+  }
+  .home-demo-controls button:hover {
+    background: var(--sl-color-gray-5);
+  }
+  .home-demo-controls button:active {
+    transform: translateY(1px);
+  }
+  .home-demo-controls button[aria-pressed='true'] {
+    background: var(--sl-color-text-accent);
+    color: var(--sl-color-black);
+  }
+  .home-demo-controls button:focus-visible {
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: 2px;
+  }
+  @media (max-width: 50rem) {
+    .home-hero-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .home-demo-controls button {
+      transition: none;
+    }
+    .home-demo-controls button:active {
+      transform: none;
+    }
+  }
+</style>

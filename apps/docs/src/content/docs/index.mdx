@@ -3,7 +3,8 @@ title: shipdot
 description: Announce new features right where they live. In-app changelog and feature hotspots generated from your pull requests.
 template: splash
 hero:
-  tagline: Announce new features right where they live. In-app changelog and feature hotspots generated from your pull requests. Zero backend, tiny web component.
+  title: Put a dot on what you shipped.
+  tagline: An in-app changelog with a pulsing dot on the button each new feature lives in. Drafted from your merged pull requests, reviewed like code, served as one static file.
   actions:
     - text: Get started
       link: /shipdot/getting-started/
@@ -11,47 +12,8 @@ hero:
     - text: Try the playground
       link: /shipdot/playground/
       variant: secondary
-    - text: GitHub
-      link: https://github.com/pipe1os/shipdot
-      icon: external
-      variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components'
+import Home from '../../components/Home.astro'
 
-<CardGrid>
-  <Card title="Hotspots on the real UI" icon="star">
-    Give an entry a `target` like `#btn-export` and a pulsing dot appears on that button. One tap
-    shows the note and marks it read.
-  </Card>
-  <Card title="Drafted from your pull requests" icon="github">
-    `shipdot draft` turns merged PRs into notes written for users and opens a pull request so a
-    human reviews them before they ship.
-  </Card>
-  <Card title="Git is the CMS" icon="document">
-    Every update is a Markdown file in `.shipdot/entries/`. History, review and rollback come for
-    free.
-  </Card>
-  <Card title="Multi-language" icon="translate">
-    Add `entry.es.md` next to `entry.md`. The widget picks the user's language and falls back
-    gracefully.
-  </Card>
-  <Card title="No backend, no tracking" icon="approve-check">
-    A static `shipdot.json` plus a 6.5 KB web component. Read state stays in the user's browser.
-  </Card>
-  <Card title="Ready for AI assistants" icon="rocket">
-    `shipdot build` also writes `llms.txt` and `llms-full.txt` with your updates in clean Markdown.
-  </Card>
-</CardGrid>
-
-## Three steps
-
-```bash
-npx @shipdot/cli init      # creates shipdot.config.json and a first entry
-npx @shipdot/cli build     # writes public/shipdot.json and llms.txt
-```
-
-```html
-<script type="module" src="https://unpkg.com/shipdot@0.2"></script>
-<ship-dot src="/shipdot.json"></ship-dot>
-```
+<Home />
