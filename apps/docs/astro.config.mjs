@@ -18,8 +18,10 @@ export default defineConfig({
       editLink: { baseUrl: 'https://github.com/pipe1os/shipdot/edit/main/apps/docs/' },
       lastUpdated: false,
       // The header shows shipdot's own "What's new" widget next to the search button (dogfooding);
-      // page titles get a "Copy page" menu that copies the page as Markdown.
+      // page titles get a 'Copy page' menu that copies the page as Markdown; the home page hero shows
+      // the widget live on a demo app.
       components: {
+        Hero: './src/components/Hero.astro',
         Search: './src/components/Search.astro',
         PageTitle: './src/components/PageTitle.astro',
       },

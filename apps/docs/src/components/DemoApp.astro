@@ -1,0 +1,103 @@
+---
+// The fake "Acme Analytics" app that shows <ship-dot> and its hotspots on real buttons (#btn-filter,
+// #btn-share, #btn-export). Used by the playground and the home page.
+interface Props {
+  storageKey: string
+  /** Feed URL. The playground leaves it out and feeds the widget itself. */
+  src?: string
+  theme?: string
+  'first-visit'?: string
+}
+
+const { storageKey, ...attrs } = Astro.props
+const bars = [38, 52, 45, 61, 58, 72, 66, 80, 74, 88, 83, 96]
+---
+
+<div class="pg-window" data-app data-theme="light" data-ui>
+  <div class="pg-chrome" aria-hidden="true">
+    <div class="pg-url">app.acme.example/reports/revenue</div>
+  </div>
+  <div class="pg-app">
+    <header class="pg-top">
+      <div class="pg-brand"><span class="pg-mark"></span>Acme Analytics</div>
+      <nav class="pg-nav" aria-label="Demo app">
+        <span class="is-active">Reports</span>
+        <span>Customers</span>
+        <span>Settings</span>
+      </nav>
+      <ship-dot storage-key={storageKey} {...attrs} class="pg-widget"></ship-dot>
+    </header>
+    <main class="pg-main">
+      <div class="pg-head">
+        <div>
+          <p class="pg-crumb">Reports</p>
+          <p class="pg-title">Revenue overview</p>
+        </div>
+        <div class="pg-actions">
+          <button type="button" id="btn-filter">Filter</button>
+          <button type="button" id="btn-share">Share</button>
+          <button type="button" id="btn-export" class="is-primary">Export</button>
+        </div>
+      </div>
+      <div class="pg-kpis">
+        <div><p>Revenue</p><strong>$48.2k</strong><span class="up">+12.4%</span></div>
+        <div><p>Orders</p><strong>1,284</strong><span class="up">+3.1%</span></div>
+        <div><p>Refunds</p><strong>0.8%</strong><span class="down">−0.2%</span></div>
+      </div>
+      <div class="pg-chart" aria-hidden="true">
+        {bars.map((h) => <span style={`--h:${h}%`}></span>)}
+      </div>
+    </main>
+  </div>
+</div>
+
+<style is:global>
+  /* The fake app: its own palette, independent from the docs theme. --brand can be overridden. */
+  .pg-window {
+    --bg: #ffffff; --panel: #f4f6f8; --fg: #0f172a; --muted: #475569; --line: #e2e8f0;
+    --brand: #0f766e; --brand-fg: #ffffff; --up: #047857; --down: #b91c1c;
+    --bar: color-mix(in srgb, var(--brand) 30%, var(--panel));
+    border-radius: 0.9rem; overflow: hidden; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+    font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  .pg-window[data-theme='dark'] {
+    --bg: #0b1120; --panel: #131b2c; --fg: #e5e7eb; --muted: #9ca3af; --line: #1f2937;
+    --brand: #2dd4bf; --brand-fg: #042f2e; --up: #34d399; --down: #f87171;
+  }
+  .pg-chrome { padding: 0.55rem 0.8rem; background: var(--panel); }
+  .pg-url {
+    max-width: 22rem; font-size: 13px; color: var(--muted); background: var(--bg);
+    border-radius: 999px; padding: 0.15rem 0.75rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pg-top { display: flex; align-items: center; gap: 1.25rem; padding: 0.6rem 1rem; border-bottom: 1px solid var(--line); }
+  .pg-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; white-space: nowrap; flex: 1; }
+  .pg-mark { width: 1.1rem; height: 1.1rem; border-radius: 0.35rem; background: var(--brand); }
+  .pg-nav { display: flex; gap: 1rem; color: var(--muted); font-size: 13px; }
+  .pg-nav .is-active { color: var(--fg); font-weight: 600; }
+  .pg-widget { color: var(--fg); --shipdot-accent: var(--brand); --shipdot-accent-contrast: var(--brand-fg); }
+  .pg-main { padding: 1.25rem 1rem 1.5rem; display: grid; gap: 1.1rem; }
+  .pg-head { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; justify-content: space-between; }
+  .pg-crumb { margin: 0; font-size: 13px; color: var(--muted); }
+  .pg-title { margin: 0; font-size: 18px; font-weight: 700; }
+  .pg-actions { display: flex; gap: 0.5rem; }
+  .pg-actions button {
+    font: inherit; font-size: 13px; font-weight: 600; padding: 0.4rem 0.85rem; border-radius: 0.5rem;
+    border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer;
+  }
+  .pg-actions .is-primary { background: var(--brand); border-color: var(--brand); color: var(--brand-fg); }
+  .pg-actions button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .pg-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+  .pg-kpis > div { border-radius: 0.6rem; padding: 0.7rem 0.8rem; background: var(--panel); }
+  .pg-kpis p { margin: 0; font-size: 13px; color: var(--muted); }
+  .pg-kpis strong { display: block; font-size: 20px; }
+  .pg-kpis .up { color: var(--up); font-size: 13px; font-weight: 600; }
+  .pg-kpis .down { color: var(--down); font-size: 13px; font-weight: 600; }
+  .pg-chart { display: flex; align-items: end; gap: 0.45rem; height: 9rem; padding: 0.9rem; border-radius: 0.6rem; background: var(--panel); }
+  .pg-chart span { flex: 1; height: var(--h); border-radius: 0.3rem 0.3rem 0 0; background: var(--bar); }
+  .pg-chart span:last-child { background: var(--brand); }
+  @media (max-width: 560px) {
+    .pg-nav { display: none; }
+    .pg-kpis { grid-template-columns: 1fr; }
+  }
+</style>

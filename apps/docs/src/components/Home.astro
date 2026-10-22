@@ -1,0 +1,283 @@
+---
+// Home page sections below the hero. Each one makes one claim and shows the real thing behind it.
+import { Image } from 'astro:assets'
+import { Code } from '@astrojs/starlight/components'
+import panelDark from '../../../../.github/assets/panel-dark.webp'
+import panelLight from '../../../../.github/assets/panel-light.webp'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const pullRequest = `## What changed
+Refactors the exporter and adds an XLSX writer.
+
+### shipdot
+title: Export to Excel
+type: new
+target: "#btn-export"
+
+You can now export any report to Excel with one click.`
+// Lines, not a template literal: a line of just "---" would end this frontmatter for Biome.
+const entry = [
+  '---',
+  'date: 2026-10-14',
+  'type: new',
+  'title: Export to Excel',
+  'target: "#btn-export"',
+  'pr: 128',
+  '---',
+  'You can now export any report to Excel with one click.',
+].join('\n')
+const frameworks = [
+  ['Vanilla JS', 'vanilla'],
+  ['React', 'react'],
+  ['Vue', 'vue'],
+  ['Svelte', 'svelte'],
+  ['Astro', 'astro'],
+  ['Next.js', 'next'],
+]
+const panelAlt =
+  "The What's new panel open in a demo analytics app, listing three updates tagged New, Improved and Fixed"
+---
+
+<div class="home not-content">
+  <section class="home-split" aria-labelledby="home-drafts">
+    <div class="home-text">
+      <h2 id="home-drafts">Your pull requests write the first draft.</h2>
+      <p>
+        Add a <code>### shipdot</code> section to a pull request, or let its title speak for itself.{' '}
+        <code>shipdot draft</code> writes one Markdown entry per user-facing change, skips chores and
+        bots, and opens a pull request so a person checks the wording before anyone sees it.
+      </p>
+      <p>
+        With your own LLM key it also rewrites and translates the drafts. Only the title and
+        description of each pull request are sent.
+      </p>
+      <a class="home-link" href={`${base}/guides/drafting/`}>How drafting works</a>
+    </div>
+    <div class="home-code">
+      <Code code={pullRequest} lang="md" title="Pull request description" />
+      <Code code={entry} lang="md" title=".shipdot/entries/2026-10-14-export-to-excel.md" />
+    </div>
+  </section>
+
+  <section class="home-split home-split-flip" aria-labelledby="home-fit">
+    <div class="home-text">
+      <h2 id="home-fit">Your look, their language.</h2>
+      <p>
+        A popover, a drawer or a modal. Light and dark themes that meet WCAG 2.1 AA, your colors
+        through CSS custom properties, or your own button in place of the bell.
+      </p>
+      <p>
+        Put <code>entry.es.md</code> next to <code>entry.md</code> and the widget picks the user's
+        language, falling back per entry. Its own labels ship in English, Spanish and Portuguese.
+      </p>
+      <a class="home-link" href={`${base}/guides/theming/`}>Theming</a>
+      <a class="home-link" href={`${base}/guides/i18n/`}>Internationalization</a>
+    </div>
+    <figure class="home-shot">
+      <Image src={panelDark} alt={panelAlt} class="light:sl-hidden" widths={[720, 1440]} sizes="(min-width: 72rem) 40rem, 100vw" />
+      <Image src={panelLight} alt={panelAlt} class="dark:sl-hidden" widths={[720, 1440]} sizes="(min-width: 72rem) 40rem, 100vw" />
+    </figure>
+  </section>
+
+  <section class="home-facts" aria-labelledby="home-nothing">
+    <h2 id="home-nothing">Nothing to run. Nothing to track.</h2>
+    <dl>
+      <div>
+        <dt>Under 10 KB</dt>
+        <dd>
+          The whole widget, minified and gzipped, with zero dependencies. CI fails the build if it
+          grows past that.
+        </dd>
+      </div>
+      <div>
+        <dt>One request</dt>
+        <dd>
+          The widget fetches your <code>shipdot.json</code> and nothing else: no cookies, no
+          analytics, no fonts. Read state stays in the user's browser.
+        </dd>
+      </div>
+      <div>
+        <dt>No server</dt>
+        <dd>
+          Entries are Markdown files in Git and the feed is a static file you deploy with your site.
+          Every build also writes <code>llms.txt</code>, so AI assistants know what changed.
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="home-start" aria-labelledby="home-start">
+    <h2 id="home-start">Add it to your app.</h2>
+    <div class="home-code">
+      <Code
+        code={`npx @shipdot/cli init    # shipdot.config.json and a first entry
+npx @shipdot/cli build   # public/shipdot.json and llms.txt`}
+        lang="bash"
+        title="Terminal"
+      />
+      <Code
+        code={`<script type="module" src="https://unpkg.com/shipdot@0.2"></script>
+<ship-dot src="/shipdot.json"></ship-dot>`}
+        lang="html"
+        title="index.html"
+      />
+    </div>
+    <p>
+      Guides for{' '}
+      {
+        frameworks.map(([name, slug], i) => (
+          <>
+            <a href={`${base}/frameworks/${slug}/`}>{name}</a>
+            {i < frameworks.length - 2 ? ', ' : i === frameworks.length - 2 ? ' and ' : '.'}
+          </>
+        ))
+      }
+    </p>
+  </section>
+</div>
+
+<style>
+  .home {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(5rem, 10vw, 9rem);
+    padding-block: clamp(3rem, 8vw, 6rem) 2rem;
+  }
+  .home h2 {
+    margin: 0;
+    font-size: clamp(1.875rem, 1.2rem + 2.4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--sl-color-white);
+  }
+  .home p,
+  .home dd {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--sl-color-white);
+  }
+  .home p code,
+  .home dd code {
+    font-size: 0.9em;
+  }
+  .home a {
+    color: var(--sl-color-text-accent);
+    text-underline-offset: 0.2em;
+  }
+  .home a:hover {
+    color: var(--sl-color-white);
+  }
+
+  .home-split {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 2rem 4rem;
+    align-items: center;
+  }
+  .home-split-flip {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+  .home-split-flip .home-text {
+    order: 2;
+  }
+  .home-text p {
+    margin: 1.25rem 0 0;
+    max-width: 34rem;
+  }
+  .home-link {
+    display: inline-block;
+    margin: 1.5rem 1.5rem 0 0;
+    font-weight: 600;
+  }
+  .home-link::after {
+    content: ' →';
+  }
+  .home-code {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .home-code :global(.expressive-code) {
+    margin: 0;
+  }
+  /* A grid, so the screenshots are blocks without overriding Starlight's light:/dark:sl-hidden. */
+  .home-shot {
+    display: grid;
+    margin: 0;
+  }
+  .home-shot :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+  }
+
+  .home-facts dl {
+    display: grid;
+    margin: 2.5rem 0 0;
+  }
+  .home-facts dl > div {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 0.5rem 4rem;
+    align-items: center;
+    padding-block: 1.75rem;
+  }
+  .home-facts dl > div:nth-child(even) {
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    border-radius: 0.75rem;
+    background: var(--sl-color-gray-6);
+  }
+  .home-facts dt {
+    font-size: clamp(2.25rem, 1.4rem + 3vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    color: var(--sl-color-text-accent);
+  }
+  .home-facts dd {
+    margin: 0;
+    max-width: 36rem;
+  }
+
+  .home-start .home-code {
+    margin-top: 2rem;
+  }
+  .home-start p {
+    margin: 1.5rem 0 0;
+  }
+
+  /* Each part of a section rises into place as it scrolls in. Where scroll-driven animations are
+     not supported, or motion is reduced, everything is simply there. */
+  @keyframes home-rise {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .home section > *,
+      .home-facts dl > div {
+        animation: home-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 35%;
+      }
+      .home section > :nth-child(2) {
+        animation-range: entry 10% entry 45%;
+      }
+    }
+  }
+
+  @media (max-width: 50rem) {
+    .home-split,
+    .home-split-flip,
+    .home-facts dl > div {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .home-split-flip .home-text {
+      order: 0;
+    }
+  }
+</style>

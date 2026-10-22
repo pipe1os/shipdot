@@ -1,10 +1,11 @@
+/* The accent is the red dot of the logo. Every pair keeps AA contrast in both themes. */
 :root {
-  --sl-color-accent-low: #1e1b4b;
-  --sl-color-accent: #6366f1;
-  --sl-color-accent-high: #c7d2fe;
+  --sl-color-accent-low: #3a1209;
+  --sl-color-accent: #ee4423;
+  --sl-color-accent-high: #ffb5a3;
 }
 :root[data-theme="light"] {
-  --sl-color-accent-low: #e0e7ff;
-  --sl-color-accent: #4f46e5;
-  --sl-color-accent-high: #312e81;
+  --sl-color-accent-low: #ffe2da;
+  --sl-color-accent: #c2321a;
+  --sl-color-accent-high: #5a1406;
 }

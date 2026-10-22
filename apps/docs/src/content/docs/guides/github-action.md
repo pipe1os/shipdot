@@ -76,4 +76,4 @@ For `GITHUB_TOKEN` to open pull requests, enable **Settings → Actions → Gene
 - Pull request titles and bodies are untrusted input. The Action never puts them in a shell or `${{ }}` expression; it talks to GitHub only through the REST API (Git Data API for the commit).
 - Text from PRs is escaped in the draft pull request body (no HTML, no `@mentions`).
 - `github-token` and `llm-api-key` are masked with `core.setSecret`. See [LLM mode](/shipdot/guides/drafting/#llm-mode-bring-your-own-key) for exactly what is sent to the model.
-- Pin the Action to a full commit SHA if your policy requires it: `uses: pipe1os/shipdot@<sha> # v0.1.0`.
+- Pin the Action to a full commit SHA if your policy requires it: `uses: pipe1os/shipdot@<sha> # v0.2.0`.

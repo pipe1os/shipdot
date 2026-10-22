@@ -8,7 +8,7 @@ description: Attributes, properties, methods, events, slots, parts and browser s
 <ship-dot src="/shipdot.json"></ship-dot>
 ```
 
-Importing `shipdot` registers the `<ship-dot>` custom element. The import is safe during server-side rendering (it does nothing there). The package has **zero runtime dependencies** and weighs about **6.5 KB min+gzip**; CI fails above 10 KB.
+Importing `shipdot` registers the `<ship-dot>` custom element. The import is safe during server-side rendering (it does nothing there). The package has **zero runtime dependencies** and weighs about **7.6 KB min+gzip**; CI fails above 10 KB.
 
 ## Attributes
 
@@ -24,6 +24,8 @@ Importing `shipdot` registers the `<ship-dot>` custom element. The import is saf
 | `storage-key` | `default` | Read state is stored in `localStorage` under `shipdot:<storage-key>`. Use different keys for widgets with different feeds. |
 
 The element reflects the unread count in `data-unread`.
+
+If `src` fails to load, the bell still works: the panel shows an error message, and opening it tries again. Entries you have read are listed under an **Earlier** divider, below the unread ones.
 
 ## Properties and methods
 
