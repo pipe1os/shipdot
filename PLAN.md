@@ -159,6 +159,40 @@ Candidates found while reviewing the widget (2026-10-21). Not covered by open Gi
 - [x] Load-error state: when `src` fails to load, clicking the trigger opens the panel with a short message instead of doing nothing.
 - [x] Live panel: when `refresh()` brings new entries while the panel is open, re-render it without losing scroll position or focus.
 
+## Before v1.0.0
+
+Not scheduled. Keep releasing `0.x` minors until the API stops changing; go through this list when a 1.0 release is close. v1.0.0 is a promise that nothing below changes in a breaking way until 2.0.
+
+**When is it time**
+
+- [ ] A couple of minor releases in a row with no breaking change
+- [ ] At least one real integration outside this repository that did not need API changes
+- [ ] Nothing left on the public surface (below) that we would still rename or remove
+
+**Freeze the public surface**: write one docs page that lists everything users type into their own code or config, review it once, and rename or remove anything awkward while still in `0.x`. What remains on the page is what 1.0 promises.
+
+- [ ] Widget: attributes (`src`, `locale`, `mode`, `storage-key`, …), methods (`refresh`, `markRead`, `markAllRead`, `replayLatest`), `shipdot:*` events and their `detail`, `--shipdot-*` custom properties, slots and parts, UI string keys
+- [ ] Entry frontmatter fields, `shipdot.json` v1 and the config file (JSON Schemas in `packages/core/schema/`)
+- [ ] CLI: commands, flags, exit codes
+- [ ] Action: inputs and outputs in `action.yml`
+- [ ] `@shipdot/core` and `@shipdot/core/compile`: decide which exports are supported; mark the rest internal or stop exporting them
+- [ ] Decide scheduled entries (backlog above) first: hiding future-dated entries after 1.0 would change how existing feeds behave. Ship it, or make it opt-in with a new field
+
+**Semver policy**
+
+- [ ] Docs page that says what counts as breaking (removed or renamed attributes, methods, events, custom properties, fields, flags, inputs; changed defaults) and what does not (new optional fields and options, bug fixes, visual polish)
+- [ ] Deprecation policy: how long the widget keeps supporting an old feed version (invariant 8) and how deprecations are announced
+
+**Leaving `0.x`**
+
+- [ ] Update `pipe1os/shipdot@v0` to `@v1` in README, README_es, docs, `packages/cli/src/init.ts`, `examples/github-action` (no script rewrites these); keep the `v0` tag working for existing workflows
+- [ ] CDN pins switch to the major on their own (`cdnRange` in `init.ts`, `scripts/sync-cdn-version.ts`); check the result after `pnpm version-packages`
+- [ ] Remove the `0.x` status note from README and README_es
+- [ ] SECURITY.md supported versions (`1.x`, Action `@v1`; say whether `0.x` still gets fixes)
+- [ ] CONTRIBUTING bump rules: features are `minor`, breaking changes are `major`
+- [ ] Revisit the Notes below that say "while in `0.x`" (Changesets `fixed` group, CDN pins)
+- [ ] Major changeset for all three packages, with a changelog entry that explains the stability promise
+
 ## Notes and deviations
 
 - **Compile pipeline lives in `@shipdot/core/compile`, not in the CLI.** It is isomorphic (unified + rehype-sanitize + yaml, no Node APIs), so the docs playground runs exactly the same parsing and sanitization as `shipdot build`. The CLI only does file IO. Sanitization still happens at build time, never in the widget.
@@ -217,3 +251,4 @@ Candidates found while reviewing the widget (2026-10-21). Not covered by open Gi
 - 2026-10-21 — Placement and theme sync: a popover opened above the trigger is anchored by its bottom edge and the hotspot tooltip is re-placed when it resizes, so images that load late no longer push them over their anchor. The hotspot layer re-copies the host's theme properties after DOM changes (only writing on a change, so it cannot loop), so an app theme switch reaches the dots and tooltip.
 - 2026-10-22 — Next.js demo: `examples/next` is a static export (`output: 'export'`, `basePath` from `BASE_PATH`), and the docs workflow publishes it at `/shipdot/demo/next/` next to the docs, so the example has a live URL.
 - 2026-10-22 — Widget feed panel: an "Earlier" divider separates read entries from unread ones; when `src` fails to load, the trigger opens the panel with an error message and retries the fetch (the panel fills in if it works); a refresh or locale change while the panel is open re-renders it, keeping scroll position and focus inside it, and new entries count as seen. The bell has an accessible name before the feed loads (it had none until then, and never when loading failed). Forced colors mode (Windows High Contrast) keeps the badge, unread dot and hotspot dots visible. One date formatter per render instead of one per entry. Widget 7.62 KB min+gzip.
+- 2026-10-22 — Planning: "Before v1.0.0" checklist (not scheduled): when to leave `0.x`, freezing the public surface, a semver and deprecation policy, and the `v0` → `v1` references to update.
