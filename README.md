@@ -90,7 +90,7 @@ npx @shipdot/cli build   # → public/shipdot.json, public/llms.txt, public/llms
 **3. Add the widget**
 
 ```html
-<script type="module" src="https://unpkg.com/shipdot@0.1"></script>
+<script type="module" src="https://unpkg.com/shipdot@0.2"></script>
 <ship-dot src="/shipdot.json"></ship-dot>
 ```
 

@@ -58,7 +58,7 @@ This validates every entry, renders Markdown to sanitized HTML and writes `publi
 From a CDN:
 
 ```html
-<script type="module" src="https://unpkg.com/shipdot@0.1"></script>
+<script type="module" src="https://unpkg.com/shipdot@0.2"></script>
 <ship-dot src="/shipdot.json"></ship-dot>
 ```
 
