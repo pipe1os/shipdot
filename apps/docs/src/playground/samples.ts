@@ -25,6 +25,15 @@ La exportación mantiene tus filtros y el orden de las columnas.
 `,
   },
   {
+    path: '2026-10-14-export-excel.pt.md',
+    content: `---
+title: Exportar para o Excel
+---
+Baixe qualquer relatório como arquivo do **Excel** com um clique.
+A exportação mantém seus filtros e a ordem das colunas.
+`,
+  },
+  {
     path: '2026-10-01-saved-filters.md',
     content: `---
 date: 2026-10-01
