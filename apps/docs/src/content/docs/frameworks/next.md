@@ -37,4 +37,4 @@ The `shipdot` module is safe to import during server rendering: it only register
 
 Run `shipdot build` before `next build` so `public/shipdot.json` exists. With TypeScript, add `import type {} from 'shipdot/react'` once for JSX types.
 
-Full example: [`examples/next`](https://github.com/pipe1os/shipdot/tree/main/examples/next).
+Full example: [`examples/next`](https://github.com/pipe1os/shipdot/tree/main/examples/next) ([live demo](https://pipe1os.github.io/shipdot/demo/next/)).

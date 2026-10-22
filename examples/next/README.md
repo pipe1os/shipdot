@@ -20,5 +20,6 @@ pnpm --filter @shipdot/example-next dev
 - `.shipdot/entries/`: one entry per update. `2026-10-14-export-csv.md` has `target: "#btn-export"`, so the widget puts a hotspot on that button. The `.es.md` file is its Spanish translation.
 - `app/whats-new.jsx`: a client component that imports `shipdot` and renders `<ship-dot>`.
 - `app/page.jsx`: renders `<WhatsNew />` in the header, which puts the widget there.
+- `next.config.mjs`: `output: 'export'`, so `build` writes a static site to `out/`. The docs workflow builds it with `BASE_PATH=/shipdot/demo/next` and publishes it at https://pipe1os.github.io/shipdot/demo/next/.
 
 `first-visit="show-latest"` keeps the newest entry unread on the first visit so you can see the badge and the hotspot right away. Clear the `shipdot:default` key in localStorage to see it again.
