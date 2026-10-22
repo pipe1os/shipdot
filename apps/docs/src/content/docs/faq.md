@@ -29,7 +29,7 @@ Only each pull request's title and body, plus the instructions. Never code, diff
 
 ## How big is the widget?
 
-About 6.5 KB min+gzip with zero dependencies. CI fails the build above 10 KB.
+About 7.6 KB min+gzip with zero dependencies. CI fails the build above 10 KB.
 
 ## Does it work with server-side rendering?
 

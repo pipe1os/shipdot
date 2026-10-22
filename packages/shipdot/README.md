@@ -1,6 +1,6 @@
 # shipdot
 
-`<ship-dot>`: a zero-dependency web component for in-app changelogs and **feature hotspots**. About 6.5 KB min+gzip.
+`<ship-dot>`: a zero-dependency web component for in-app changelogs and **feature hotspots**. About 7.6 KB min+gzip.
 
 ```html
 <script type="module" src="https://unpkg.com/shipdot@0.2"></script>

@@ -48,7 +48,7 @@ This validates every entry, renders Markdown to sanitized HTML and writes `publi
     "build": "shipdot build && vite build"
   },
   "devDependencies": {
-    "@shipdot/cli": "^0.1.0"
+    "@shipdot/cli": "^0.2.0"
   }
 }
 ```
