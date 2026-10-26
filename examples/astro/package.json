@@ -7,7 +7,7 @@
     "build": "shipdot build && ASTRO_TELEMETRY_DISABLED=1 astro build"
   },
   "dependencies": {
-    "astro": "^7.4.0",
+    "astro": "^7.4.2",
     "shipdot": "workspace:^"
   },
   "devDependencies": {
