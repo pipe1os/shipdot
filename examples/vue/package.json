@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "shipdot": "workspace:^",
-    "vue": "^3.5.44"
+    "vue": "^3.5.45"
   },
   "devDependencies": {
     "@shipdot/cli": "workspace:^",
